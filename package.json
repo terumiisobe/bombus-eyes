@@ -24,7 +24,6 @@
       "react-app/jest"
     ]
   },
-  "proxy": "https://bombus.onrender.com",
   "browserslist": {
     "production": [
       ">0.2%",
