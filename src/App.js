@@ -1,6 +1,7 @@
 import logo from './logo.svg';
 import './App.css';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 
 function App() {
   const [data, setData] = useState(null);
@@ -8,6 +9,9 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [searchCode, setSearchCode] = useState('');
   const [filteredData, setFilteredData] = useState(null);
+  const [showQRScanner, setShowQRScanner] = useState(false);
+  const [qrScanner, setQrScanner] = useState(null);
+  const qrScannerRef = useRef(null);
   const API_URL = 'https://bombus.onrender.com/colmeias';
 
   // Load data from localStorage on component mount
@@ -40,7 +44,7 @@ function App() {
   useEffect(() => {
     if (data && searchCode) {
       const filtered = Array.isArray(data) 
-        ? data.filter(item => item.ColmeiaId && item.ColmeiaId.toString().includes(searchCode))
+        ? data.filter(item => item.ColmeiaID && item.ColmeiaID.toString() === searchCode)
         : [];
       setFilteredData(filtered);
     } else {
@@ -78,6 +82,40 @@ function App() {
     fetchData();
   }, [isOnline]);
 
+  // Initialize QR Scanner
+  useEffect(() => {
+    if (showQRScanner && !qrScanner) {
+      const scanner = new Html5QrcodeScanner(
+        "qr-reader",
+        { 
+          fps: 10, 
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0
+        },
+        false
+      );
+
+      scanner.render((decodedText) => {
+        // QR code scanned successfully
+        setSearchCode(decodedText);
+        setShowQRScanner(false);
+        scanner.clear();
+        setQrScanner(null);
+      }, (error) => {
+        // QR code scan error (ignore)
+      });
+
+      setQrScanner(scanner);
+    }
+
+    return () => {
+      if (qrScanner) {
+        qrScanner.clear();
+        setQrScanner(null);
+      }
+    };
+  }, [showQRScanner, qrScanner]);
+
   const handleSearch = () => {
     // Search is handled automatically by the useEffect above
   };
@@ -89,13 +127,15 @@ function App() {
       {/* Search input and button - always visible at top */}
       <div style={{ 
         display: 'flex', 
+        flexDirection: 'column',
         gap: '10px', 
         marginBottom: '20px',
-        alignItems: 'center'
+        alignItems: 'center',
+        padding: '0 20px'
       }}>
         <input
           type="text"
-          placeholder="Digite o código da colmeia..."
+          placeholder="Digitar código da colmeia"
           value={searchCode}
           onChange={(e) => setSearchCode(e.target.value)}
           style={{
@@ -103,25 +143,42 @@ function App() {
             fontSize: '16px',
             border: '1px solid #ccc',
             borderRadius: '4px',
-            flex: 1,
-            maxWidth: '300px'
+            width: '100%',
+            maxWidth: '400px',
+            boxSizing: 'border-box'
           }}
         />
         <button
-          onClick={handleSearch}
+          onClick={() => setShowQRScanner(!showQRScanner)}
           style={{
             padding: '8px 16px',
             fontSize: '16px',
-            backgroundColor: '#007bff',
+            backgroundColor: '#28a745',
             color: 'white',
             border: 'none',
             borderRadius: '4px',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            width: '100%',
+            maxWidth: '400px',
+            boxSizing: 'border-box'
           }}
         >
-          Buscar
+          {showQRScanner ? 'Cancelar QR' : 'Escanear QR Code'}
         </button>
       </div>
+
+      {/* QR Scanner Container */}
+      {showQRScanner && (
+        <div style={{ 
+          marginBottom: '20px',
+          textAlign: 'center'
+        }}>
+          <div id="qr-reader" style={{ width: '100%', maxWidth: '400px', margin: '0 auto' }}></div>
+          <p style={{ marginTop: '10px', color: '#666' }}>
+            Posicione o QR code dentro da área de leitura
+          </p>
+        </div>
+      )}
 
       {!isOnline && (
         <div style={{ 
@@ -142,7 +199,7 @@ function App() {
       )}
       {!loading && data && (
         <div>
-          {searchCode ? (
+          {searchCode && (
             <div>
               <h3>Resultados da busca para: "{searchCode}"</h3>
               {filteredData && filteredData.length > 0 ? (
@@ -150,11 +207,6 @@ function App() {
               ) : (
                 <p>Nenhum resultado encontrado para o código "{searchCode}"</p>
               )}
-            </div>
-          ) : (
-            <div>
-              <h3>Todos os dados:</h3>
-              <pre>{JSON.stringify(data, null, 2)}</pre>
             </div>
           )}
         </div>
