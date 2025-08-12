@@ -124,6 +124,19 @@ function App() {
     <div>
       <h1>Meliponário Colibri</h1>
       
+      {!isOnline && (
+        <div style={{ 
+          backgroundColor: '#fff3cd', 
+          color: '#856404', 
+          padding: '10px', 
+          margin: '10px 0',
+          borderRadius: '4px',
+          border: '1px solid #ffeaa7'
+        }}>
+          ⚠️ Você está offline no momento.
+        </div>
+      )}
+
       {/* Search input and button - always visible at top */}
       <div style={{ 
         display: 'flex', 
@@ -145,7 +158,8 @@ function App() {
             borderRadius: '4px',
             width: '100%',
             maxWidth: '400px',
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            textAlign: 'center'
           }}
         />
         <button
@@ -180,18 +194,6 @@ function App() {
         </div>
       )}
 
-      {!isOnline && (
-        <div style={{ 
-          backgroundColor: '#fff3cd', 
-          color: '#856404', 
-          padding: '10px', 
-          margin: '10px 0',
-          borderRadius: '4px',
-          border: '1px solid #ffeaa7'
-        }}>
-          ⚠️ Você está offline no momento.
-        </div>
-      )}
       {loading && (
         <div style={{ textAlign: 'center', padding: '20px' }}>
           Carregando...
@@ -201,9 +203,32 @@ function App() {
         <div>
           {searchCode && (
             <div>
-              <h3>Resultados da busca para: "{searchCode}"</h3>
               {filteredData && filteredData.length > 0 ? (
-                <pre>{JSON.stringify(filteredData, null, 2)}</pre>
+                <div style={{ padding: '0 20px' }}>
+                  {filteredData.map((item, index) => (
+                    <div key={index} style={{
+                      border: '1px solid #ddd',
+                      borderRadius: '8px',
+                      padding: '20px',
+                      marginBottom: '15px',
+                      backgroundColor: '#f9f9f9',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    }}>
+                      <div style={{ marginBottom: '10px' }}>
+                        <strong>Código:</strong> {item.ColmeiaID}
+                      </div>
+                      <div style={{ marginBottom: '10px' }}>
+                        <strong>Espécie:</strong> {item.Species || 'N/A'}
+                      </div>
+                      <div style={{ marginBottom: '10px' }}>
+                        <strong>Data de Início:</strong> {item.StartingDate ? new Date(item.StartingDate).toLocaleDateString('pt-BR') : 'N/A'}
+                      </div>
+                      <div>
+                        <strong>Status:</strong> {item.Status || 'N/A'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               ) : (
                 <p>Nenhum resultado encontrado para o código "{searchCode}"</p>
               )}
