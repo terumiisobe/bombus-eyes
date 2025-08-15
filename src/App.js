@@ -215,16 +215,16 @@ function App() {
                       boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                     }}>
                       <div style={{ marginBottom: '10px' }}>
-                        <strong>Código:</strong> {item.ColmeiaID}
+                        <strong>Código:</strong> {item.colmeia_id}
                       </div>
                       <div style={{ marginBottom: '10px' }}>
-                        <strong>Espécie:</strong> {item.Species || 'N/A'}
+                        <strong>Espécie:</strong> {item.species || 'N/A'}
                       </div>
                       <div style={{ marginBottom: '10px' }}>
-                        <strong>Data de Início:</strong> {item.StartingDate ? new Date(item.StartingDate).toLocaleDateString('pt-BR') : 'N/A'}
+                        <strong>Data de Início:</strong> {item.starting_date ? new Date(item.starting_date).toLocaleDateString('pt-BR') : 'N/A'}
                       </div>
                       <div>
-                        <strong>Status:</strong> {item.Status || 'N/A'}
+                        <strong>Status:</strong> {item.status || 'N/A'}
                       </div>
                     </div>
                   ))}
