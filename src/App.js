@@ -14,6 +14,26 @@ function App() {
   const qrScannerRef = useRef(null);
   const API_URL = 'https://bombus.onrender.com/colmeias';
 
+  // Species mapping function
+  const getSpeciesDisplayName = (scientificName) => {
+    const speciesMap = {
+      'Melipona Quadrifasciata': 'Mandaçaia',
+      'Plebeia Gigantea': 'Mirim-guaçu',
+      'Melipona Bicolor': 'Guaraipo',
+      'Scaptotrigona Bipunctata': 'Tubuna',
+      'Tetragosnisca Angustula': 'Jataí',
+      'Scaptotrigona Depilis': 'Canudo',
+      'Plebeia Emerina': 'Mirim-emerina',
+      'Melipona Marginata': 'Manduri'
+    };
+    
+    const commonName = speciesMap[scientificName];
+    if (commonName) {
+      return { commonName, scientificName };
+    }
+    return { commonName: scientificName || 'N/A', scientificName: null };
+  };
+
   // Load data from localStorage on component mount
   useEffect(() => {
     const savedData = localStorage.getItem('bombus-data');
@@ -44,7 +64,7 @@ function App() {
   useEffect(() => {
     if (data && searchCode) {
       const filtered = Array.isArray(data) 
-        ? data.filter(item => item.ColmeiaID && item.ColmeiaID.toString() === searchCode)
+        ? data.filter(item => item.colmeia_id && item.colmeia_id.toString() === searchCode)
         : [];
       setFilteredData(filtered);
     } else {
@@ -121,8 +141,8 @@ function App() {
   };
 
   return (
-    <div>
-      <h1>Meliponário Colibri</h1>
+    <div style={{ backgroundColor: '#FBDB93', minHeight: '100vh', padding: '20px' }}>
+      <h1 style={{ color: '#8A2D3B', textAlign: 'center', marginBottom: '20px' }}>Meliponário Colibri</h1>
       
       {!isOnline && (
         <div style={{ 
@@ -159,7 +179,8 @@ function App() {
             width: '100%',
             maxWidth: '400px',
             boxSizing: 'border-box',
-            textAlign: 'center'
+            textAlign: 'center',
+            color: '#8B4513'
           }}
         />
         <button
@@ -167,8 +188,8 @@ function App() {
           style={{
             padding: '8px 16px',
             fontSize: '16px',
-            backgroundColor: '#28a745',
-            color: 'white',
+            backgroundColor: '#BE5B50',
+            color: '#641B2E',
             border: 'none',
             borderRadius: '4px',
             cursor: 'pointer',
@@ -188,14 +209,14 @@ function App() {
           textAlign: 'center'
         }}>
           <div id="qr-reader" style={{ width: '100%', maxWidth: '400px', margin: '0 auto' }}></div>
-          <p style={{ marginTop: '10px', color: '#666' }}>
+          <p style={{ marginTop: '10px', color: '#8A2D3B' }}>
             Posicione o QR code dentro da área de leitura
           </p>
         </div>
       )}
 
       {loading && (
-        <div style={{ textAlign: 'center', padding: '20px' }}>
+        <div style={{ textAlign: 'center', padding: '20px', color: '#8A2D3B' }}>
           Carregando...
         </div>
       )}
@@ -207,18 +228,29 @@ function App() {
                 <div style={{ padding: '0 20px' }}>
                   {filteredData.map((item, index) => (
                     <div key={index} style={{
-                      border: '1px solid #ddd',
+                      border: '1px solid #FFF3CD',
                       borderRadius: '8px',
                       padding: '20px',
                       marginBottom: '15px',
-                      backgroundColor: '#f9f9f9',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                      backgroundColor: '#FFF3CD',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                      color: '#BE5B50'
                     }}>
                       <div style={{ marginBottom: '10px' }}>
                         <strong>Código:</strong> {item.colmeia_id}
                       </div>
                       <div style={{ marginBottom: '10px' }}>
-                        <strong>Espécie:</strong> {item.species || 'N/A'}
+                        <strong>Espécie:</strong> {(() => {
+                          const speciesInfo = getSpeciesDisplayName(item.species);
+                          if (speciesInfo.scientificName) {
+                            return (
+                              <span>
+                                {speciesInfo.commonName} (<em>{speciesInfo.scientificName}</em>)
+                              </span>
+                            );
+                          }
+                          return speciesInfo.commonName;
+                        })()}
                       </div>
                       <div style={{ marginBottom: '10px' }}>
                         <strong>Data de Início:</strong> {item.starting_date ? new Date(item.starting_date).toLocaleDateString('pt-BR') : 'N/A'}
@@ -230,7 +262,7 @@ function App() {
                   ))}
                 </div>
               ) : (
-                <p>Nenhum resultado encontrado para o código "{searchCode}"</p>
+                <p style={{ color: '#BE5B50', textAlign: 'center' }}>Nenhum resultado encontrado para o código "{searchCode}"</p>
               )}
             </div>
           )}
