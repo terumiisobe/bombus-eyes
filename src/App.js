@@ -2,6 +2,25 @@ import logo from './logo.svg';
 import './App.css';
 import React, { useEffect, useState, useRef } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
+import { mockColmeiasData, simulateApiDelay } from './mockData';
+import {
+  containerStyle,
+  headingStyle,
+  developmentModeStyle,
+  offlineWarningStyle,
+  searchContainerStyle,
+  inputStyle,
+  cameraButtonStyle,
+  qrContainerStyle,
+  qrInstructionsStyle,
+  loadingStyle,
+  resultContainerStyle,
+  resultBoxStyle,
+  resultItemStyle,
+  resultLabelStyle,
+  resultValueStyle,
+  noResultsStyle
+} from './styles';
 
 function App() {
   const [data, setData] = useState(null);
@@ -12,7 +31,13 @@ function App() {
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [qrScanner, setQrScanner] = useState(null);
   const qrScannerRef = useRef(null);
-  const API_URL = 'https://bombus.onrender.com/colmeias';
+  
+  // Determine if we're running locally
+  const isLocalhost = window.location.hostname === 'localhost' || 
+                     window.location.hostname === '127.0.0.1' ||
+                     window.location.hostname === '';
+  
+  const API_URL = isLocalhost ? null : 'https://bombus.onrender.com/colmeias';
 
   // Species mapping function
   const getSpeciesDisplayName = (scientificName) => {
@@ -34,17 +59,19 @@ function App() {
     return { commonName: scientificName || 'N/A', scientificName: null };
   };
 
-  // Load data from localStorage on component mount
+  // Load data from localStorage on component mount (only for production)
   useEffect(() => {
-    const savedData = localStorage.getItem('bombus-data');
-    if (savedData) {
-      try {
-        setData(JSON.parse(savedData));
-      } catch (error) {
-        console.error('Error parsing saved data:', error);
+    if (!isLocalhost) {
+      const savedData = localStorage.getItem('bombus-data');
+      if (savedData) {
+        try {
+          setData(JSON.parse(savedData));
+        } catch (error) {
+          console.error('Error parsing saved data:', error);
+        }
       }
     }
-  }, []);
+  }, [isLocalhost]);
 
   // Handle online/offline status
   useEffect(() => {
@@ -76,14 +103,21 @@ function App() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(API_URL);
-        if (response.ok) {
-          const newData = await response.json();
-          setData(newData);
-          // Save to localStorage for offline persistence
-          localStorage.setItem('bombus-data', JSON.stringify(newData));
+        if (API_URL) {
+          const response = await fetch(API_URL);
+          if (response.ok) {
+            const newData = await response.json();
+            setData(newData);
+            // Save to localStorage for offline persistence
+            localStorage.setItem('bombus-data', JSON.stringify(newData));
+          } else {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
         } else {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          // Use mock data for localhost
+          await simulateApiDelay(1000); // Simulate 1 second delay
+          setData(mockColmeiasData);
+          console.log('Using mock data for local development');
         }
       } catch (err) {
         console.error('Fetch failed:', err);
@@ -100,7 +134,7 @@ function App() {
     };
 
     fetchData();
-  }, [isOnline]);
+  }, [isOnline, API_URL]);
 
   // Initialize QR Scanner
   useEffect(() => {
@@ -141,106 +175,88 @@ function App() {
   };
 
   return (
-    <div style={{ backgroundColor: '#FBDB93', minHeight: '100vh', padding: '20px' }}>
-      <h1 style={{ color: '#8A2D3B', textAlign: 'center', marginBottom: '20px' }}>Meliponário Colibri</h1>
+    <div style={containerStyle}>
+      <h1 style={headingStyle}>Meliponário Colibri</h1>
+      
+      {isLocalhost && (
+        <div style={developmentModeStyle}>
+          🧪 Modo de Desenvolvimento - Usando dados mock
+        </div>
+      )}
       
       {!isOnline && (
-        <div style={{ 
-          backgroundColor: '#fff3cd', 
-          color: '#856404', 
-          padding: '10px', 
-          margin: '10px 0',
-          borderRadius: '4px',
-          border: '1px solid #ffeaa7'
-        }}>
+        <div style={offlineWarningStyle}>
           ⚠️ Você está offline no momento.
         </div>
       )}
 
       {/* Search input and button - always visible at top */}
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column',
-        gap: '10px', 
-        marginBottom: '20px',
-        alignItems: 'center',
-        padding: '0 20px'
-      }}>
+      <div style={searchContainerStyle}>
         <input
           type="text"
           placeholder="Digitar código da colmeia"
           value={searchCode}
           onChange={(e) => setSearchCode(e.target.value)}
-          style={{
-            padding: '8px 12px',
-            fontSize: '16px',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            width: '100%',
-            maxWidth: '400px',
-            boxSizing: 'border-box',
-            textAlign: 'center',
-            color: '#8B4513'
-          }}
+          style={inputStyle}
         />
         <button
           onClick={() => setShowQRScanner(!showQRScanner)}
-          style={{
-            padding: '8px 16px',
-            fontSize: '16px',
-            backgroundColor: '#BE5B50',
-            color: '#641B2E',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            width: '100%',
-            maxWidth: '400px',
-            boxSizing: 'border-box'
-          }}
+          style={cameraButtonStyle}
+          title="Escanear QR Code"
         >
-          {showQRScanner ? 'Cancelar QR' : 'Escanear QR Code'}
+          <svg 
+            width="24" 
+            height="24" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path 
+              d="M23 19C23 19.5304 22.7893 20.0391 22.4142 20.4142C22.0391 20.7893 21.5304 21 21 21H3C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V8C1 7.46957 1.21071 6.96086 1.58579 6.58579C1.96086 6.21071 2.46957 6 3 6H7L9 3H15L17 6H21C21.5304 6 22.0391 6.21071 22.4142 6.58579C22.7893 6.96086 23 7.46957 23 8V19Z" 
+              stroke="white" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            />
+            <path 
+              d="M12 17C14.2091 17 16 15.2091 16 13C16 10.7909 14.2091 9 12 9C9.79086 9 8 10.7909 8 13C8 15.2091 9.79086 17 12 17Z" 
+              stroke="white" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            />
+          </svg>
         </button>
       </div>
 
       {/* QR Scanner Container */}
       {showQRScanner && (
-        <div style={{ 
-          marginBottom: '20px',
-          textAlign: 'center'
-        }}>
-          <div id="qr-reader" style={{ width: '100%', maxWidth: '400px', margin: '0 auto' }}></div>
-          <p style={{ marginTop: '10px', color: '#8A2D3B' }}>
+        <div style={qrContainerStyle}>
+          <div id="qr-reader" style={{ width: '100%', maxWidth: '500px', margin: '0 auto' }}></div>
+          <p style={qrInstructionsStyle}>
             Posicione o QR code dentro da área de leitura
           </p>
         </div>
       )}
 
       {loading && (
-        <div style={{ textAlign: 'center', padding: '20px', color: '#8A2D3B' }}>
+        <div style={loadingStyle}>
           Carregando...
         </div>
       )}
       {!loading && data && (
-        <div>
+        <div style={resultContainerStyle}>
           {searchCode && (
             <div>
               {filteredData && filteredData.length > 0 ? (
-                <div style={{ padding: '0 20px' }}>
+                <div style={resultContainerStyle}>
                   {filteredData.map((item, index) => (
-                    <div key={index} style={{
-                      border: '1px solid #FFF3CD',
-                      borderRadius: '8px',
-                      padding: '20px',
-                      marginBottom: '15px',
-                      backgroundColor: '#FFF3CD',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                      color: '#BE5B50'
-                    }}>
-                      <div style={{ marginBottom: '10px' }}>
-                        <strong>Código:</strong> {item.colmeia_id}
+                    <div key={index} style={resultBoxStyle}>
+                      <div style={resultItemStyle}>
+                        <strong style={resultLabelStyle}>Código:</strong> <span style={resultValueStyle}>{item.colmeia_id}</span>
                       </div>
-                      <div style={{ marginBottom: '10px' }}>
-                        <strong>Espécie:</strong> {(() => {
+                      <div style={resultItemStyle}>
+                        <strong style={resultLabelStyle}>Espécie:</strong> <span style={resultValueStyle}>{(() => {
                           const speciesInfo = getSpeciesDisplayName(item.species);
                           if (speciesInfo.scientificName) {
                             return (
@@ -250,19 +266,19 @@ function App() {
                             );
                           }
                           return speciesInfo.commonName;
-                        })()}
+                        })()}</span>
                       </div>
-                      <div style={{ marginBottom: '10px' }}>
-                        <strong>Data de Início:</strong> {item.starting_date ? new Date(item.starting_date).toLocaleDateString('pt-BR') : 'N/A'}
+                      <div style={resultItemStyle}>
+                        <strong style={resultLabelStyle}>Data de Início:</strong> <span style={resultValueStyle}>{item.starting_date ? new Date(item.starting_date).toLocaleDateString('pt-BR') : 'N/A'}</span>
                       </div>
-                      <div>
-                        <strong>Status:</strong> {item.status || 'N/A'}
+                      <div style={resultItemStyle}>
+                        <strong style={resultLabelStyle}>Status:</strong> <span style={resultValueStyle}>{item.status || 'N/A'}</span>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p style={{ color: '#BE5B50', textAlign: 'center' }}>Nenhum resultado encontrado para o código "{searchCode}"</p>
+                <p style={noResultsStyle}>Nenhum resultado encontrado para o código "{searchCode}"</p>
               )}
             </div>
           )}
