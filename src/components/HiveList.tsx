@@ -11,10 +11,10 @@ export function HiveList({ hives, searchTerm }: HiveListProps) {
     if (!searchTerm) return true;
     const searchLower = searchTerm.toLowerCase();
     return (
-      (hive.code && hive.code.toLowerCase().includes(searchLower)) ||
-      hive.species.commonName.toLowerCase().includes(searchLower) ||
-      hive.species.scientificName.toLowerCase().includes(searchLower) ||
-      hive.status.toLowerCase().includes(searchLower)
+      (hive.Code && hive.Code.toString().includes(searchLower)) ||
+      hive.Species.CommonName.toLowerCase().includes(searchLower) ||
+      hive.Species.ScientificName.toLowerCase().includes(searchLower) ||
+      hive.Status.toLowerCase().includes(searchLower)
     );
   });
 
@@ -36,7 +36,7 @@ export function HiveList({ hives, searchTerm }: HiveListProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {filteredHives.map((hive) => (
-        <HiveCard key={hive.colmeia_id} hive={hive} />
+        <HiveCard key={hive.ID} hive={hive} />
       ))}
     </div>
   );

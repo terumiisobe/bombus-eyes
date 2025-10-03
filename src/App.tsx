@@ -2,13 +2,16 @@
 import React, { useEffect, useState } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { mockColmeiasData, simulateApiDelay } from './mockData';
-import { Colmeia, SpeciesInfo } from './types';
+import { Colmeia, SpeciesInfo, HiveStatus } from './types';
 import { Navigation } from "./components/Navigation";
 import { Hexagon } from 'lucide-react';
 import { Dashboard } from "./components/Dashboard";
 import { SearchBar } from "./components/SearchBar";
 import { Badge } from "./components/ui/badge";
 import { HiveList } from "./components/HiveList";
+import { OfflineStatus } from "./components/OfflineStatus";
+import { Toaster } from "./components/ui/sonner";
+import { apiService } from "./services/apiService";
 import './styles/globals.css';
 import {
   developmentModeStyle,
@@ -139,20 +142,20 @@ function App() {
   // };
 
   const handleAddHive = (newHive: {
-    code?: string;
+    code?: number;
     species: SpeciesInfo;
-    status: 'EM_DESENVOLVIMENTO' | 'VAZIA' | 'PRONTA_PARA_COLHEITA';
+    status: HiveStatus;
   }) => {
     const hive: Colmeia = {
-      colmeia_id: Date.now().toString(),
-      code: newHive.code,
-      species: {
-        id: newHive.species.id,
-        commonName: newHive.species.commonName,
-        scientificName: newHive.species.scientificName
+      ID: Date.now().toString(),
+      Code: newHive.code,
+      Species: {
+        ID: newHive.species.ID,
+        CommonName: newHive.species.CommonName,
+        ScientificName: newHive.species.ScientificName
       },
-      status: newHive.status,
-      starting_date: new Date().toLocaleDateString('pt-BR'),
+      Status: newHive.status,
+      StartingDate: new Date().toLocaleDateString('pt-BR'),
     };
     
     setHives(prev => [hive, ...prev]);
@@ -176,6 +179,9 @@ function App() {
             <p className="text-amber-700 mt-1">
               Sistema de gerenciamento de colmeias
             </p>
+            <div className="mt-3 flex justify-center gap-4">
+              <OfflineStatus />
+            </div>
           </div>
         </div>
       </div>
@@ -189,12 +195,6 @@ function App() {
       {isLocalhost && (
         <div style={developmentModeStyle}>
           🧪 Modo de Desenvolvimento
-        </div>
-      )}
-      
-      {!isOnline && (
-        <div style={offlineWarningStyle}>
-          ⚠️ Você está offline no momento.
         </div>
       )}
 
@@ -217,10 +217,10 @@ function App() {
                   {hives.filter(hive => {
                     const searchLower = searchCode.toLowerCase();
                     return (
-                      (hive.code && hive.code.toLowerCase().includes(searchLower)) ||
-                      hive.species.commonName.toLowerCase().includes(searchLower) ||
-                      hive.species.scientificName.toLowerCase().includes(searchLower) ||
-                      hive.status.toLowerCase().includes(searchLower)
+                      (hive.Code && hive.Code.toString().includes(searchLower)) ||
+                      hive.Species.CommonName.toLowerCase().includes(searchLower) ||
+                      hive.Species.ScientificName.toLowerCase().includes(searchLower) ||
+                      hive.Status.toLowerCase().includes(searchLower)
                     );
                   }).length} resultados para "{searchCode}"
                 </Badge>
@@ -232,6 +232,7 @@ function App() {
           </div>
         )}
       </div>
+      <Toaster />
     </div>
   );
 }

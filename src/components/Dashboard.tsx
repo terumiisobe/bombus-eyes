@@ -1,25 +1,25 @@
 import { Hexagon } from "lucide-react";
 import { AddHiveDialog } from "./AddHiveDialog";
-import { Colmeia, SpeciesInfo } from "../types";
+import { Colmeia, SpeciesInfo, HiveStatus } from "../types";
 
 interface DashboardProps {
   hives: Colmeia[];
   onAddHive: (hive: {
-    code?: string;
+    code?: number;
     species: SpeciesInfo;
-    status: 'EM_DESENVOLVIMENTO' | 'VAZIA' | 'PRONTA_PARA_COLHEITA';
+    status: HiveStatus;
   }) => void;
 }
 
 export function Dashboard({ hives, onAddHive }: DashboardProps) {
-  const developingHives = hives.filter(h => h.status === 'EM_DESENVOLVIMENTO').length;
-  const emptyHives = hives.filter(h => h.status === 'VAZIA').length;
-  const readyToHarvestHives = hives.filter(h => h.status === 'PRONTA_PARA_COLHEITA').length;
-  const inducedHives = hives.filter(h => h.status === 'INDUZIDA').length;
-  const acceptsMelgueiraHives = hives.filter(h => h.status === 'PRONTO_PARA_MELGUEIRA').length;
-  const petBottleHives = hives.filter(h => h.status === 'GARRAFA_PET').length;
-  const movedHives = hives.filter(h => h.status === 'MOVIDA').length;
-  const unknownHives = hives.filter(h => h.status === 'DESCONHECIDO').length;
+  const developingHives = hives.filter(h => h.Status === 'EM_DESENVOLVIMENTO').length;
+  const emptyHives = hives.filter(h => h.Status === 'VAZIA').length;
+  const readyToHarvestHives = hives.filter(h => h.Status === 'PRONTA_PARA_COLHEITA').length;
+  const inducedHives = hives.filter(h => h.Status === 'INDUZIDA').length;
+  const acceptsMelgueiraHives = hives.filter(h => h.Status === 'PRONTO_PARA_MELGUEIRA').length;
+  const petBottleHives = hives.filter(h => h.Status === 'GARRAFA_PET').length;
+  const movedHives = hives.filter(h => h.Status === 'MOVIDA').length;
+  const unknownHives = hives.filter(h => h.Status === 'DESCONHECIDO').length;
 
   return (
     <div className="space-y-8">

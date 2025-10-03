@@ -27,26 +27,26 @@ export function HiveCard({ hive }: HiveCardProps) {
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <h3 className="font-medium">
-              {hive.code ? `Colmeia ${hive.code}` : 'Colmeia sem código'}
+              {hive.Code ? `Colmeia ${hive.Code}` : 'Colmeia sem código'}
             </h3>
             <div className="flex items-center gap-2 text-muted-foreground">
               <Hexagon className="w-4 h-4" />
-              <span className="text-sm">{hive.species.commonName} ({hive.species.scientificName})</span>
+              <span className="text-sm">{hive.Species.CommonName} ({hive.Species.ScientificName})</span>
             </div>
           </div>
           <Badge 
             variant="outline" 
-            className={`${statusColors[hive.status as keyof typeof statusColors]} border flex items-center gap-1`}
+            className={`${statusColors[hive.Status as keyof typeof statusColors]} border flex items-center gap-1`}
           >
-            {statusIcons[hive.status as keyof typeof statusIcons]}
-            {hive.status}
+            {statusIcons[hive.Status as keyof typeof statusIcons]}
+            {hive.Status}
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Calendar className="w-4 h-4" />
-          <span>Criada em {hive.starting_date}</span>
+          <span>Criada em {hive.StartingDate}</span>
         </div>
       </CardContent>
     </Card>
