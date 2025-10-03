@@ -3,114 +3,114 @@ import { Colmeia } from './types';
 // Mock data for local development
 export const mockColmeiasData: Colmeia[] = [
   {
-    colmeia_id: "001",
-    code: "001",
-    species: {
-      id: 4,
-      commonName: "Mandaçaia",
-      scientificName: "Melipona Quadrifasciata"
+    ID: "001",
+    Code: 1,
+    Species: {
+      ID: 4,
+      CommonName: "Mandaçaia",
+      ScientificName: "Melipona Quadrifasciata"
     },
-    starting_date: "2023-01-15",
-    status: "EM_DESENVOLVIMENTO"
+    StartingDate: "2023-01-15",
+    Status: "EM_DESENVOLVIMENTO"
   },
   {
-    colmeia_id: "002",
-    code: "002",
-    species: {
-      id: 3,
-      commonName: "Mirim-guaçu",
-      scientificName: "Plebeia Gigantea"
+    ID: "002",
+    Code: 2,
+    Species: {
+      ID: 3,
+      CommonName: "Mirim-guaçu",
+      ScientificName: "Plebeia Gigantea"
     },
-    starting_date: "2023-02-20",
-    status: "EM_DESENVOLVIMENTO"
+    StartingDate: "2023-02-20",
+    Status: "EM_DESENVOLVIMENTO"
   },
   {
-    colmeia_id: "003",
-    code: "003",
-    species: {
-      id: 5,
-      commonName: "Guaraipo",
-      scientificName: "Melipona Bicolor"
+    ID: "003",
+    Code: 3,
+    Species: {
+      ID: 5,
+      CommonName: "Guaraipo",
+      ScientificName: "Melipona Bicolor"
     },
-    starting_date: "2023-03-10",
-    status: "EM_DESENVOLVIMENTO"
+    StartingDate: "2023-03-10",
+    Status: "EM_DESENVOLVIMENTO"
   },
   {
-    colmeia_id: "004",
-    code: "004",
-    species: {
-      id: 8,
-      commonName: "Tubuna",
-      scientificName: "Scaptotrigona Bipunctata"
+    ID: "004",
+    Code: 4,
+    Species: {
+      ID: 8,
+      CommonName: "Tubuna",
+      ScientificName: "Scaptotrigona Bipunctata"
     },
-    starting_date: "2023-04-05",
-    status: "VAZIA"
+    StartingDate: "2023-04-05",
+    Status: "VAZIA"
   },
   {
-    colmeia_id: "005",
-    code: "005",
-    species: {
-      id: 1,
-      commonName: "Jataí",
-      scientificName: "Tetragosnisca Angustula"
+    ID: "005",
+    Code: 5,
+    Species: {
+      ID: 1,
+      CommonName: "Jataí",
+      ScientificName: "Tetragosnisca Angustula"
     },
-    starting_date: "2023-05-12",
-    status: "INDUZIDA"
+    StartingDate: "2023-05-12",
+    Status: "INDUZIDA"
   },
   {
-    colmeia_id: "006",
-    code: "006",
-    species: {
-      id: 9,
-      commonName: "Canudo",
-      scientificName: "Scaptotrigona Depilis"
+    ID: "006",
+    Code: 6,
+    Species: {
+      ID: 9,
+      CommonName: "Canudo",
+      ScientificName: "Scaptotrigona Depilis"
     },
-    starting_date: "2023-06-18",
-    status: "MOVIDA"
+    StartingDate: "2023-06-18",
+    Status: "MOVIDA"
   },
   {
-    colmeia_id: "007",
-    code: "007",
-    species: {
-      id: 2,
-      commonName: "Mirim-emerina",
-      scientificName: "Plebeia Emerina"
+    ID: "007",
+    Code: 7,
+    Species: {
+      ID: 2,
+      CommonName: "Mirim-emerina",
+      ScientificName: "Plebeia Emerina"
     },
-    starting_date: "2023-07-22",
-    status: "PRONTO_PARA_MELGUEIRA"
+    StartingDate: "2023-07-22",
+    Status: "PRONTO_PARA_MELGUEIRA"
   },
   {
-    colmeia_id: "008",
-    code: "008",
-    species: {
-      id: 6,
-      commonName: "Manduri",
-      scientificName: "Melipona Marginata"
+    ID: "008",
+    Code: 8,
+    Species: {
+      ID: 6,
+      CommonName: "Manduri",
+      ScientificName: "Melipona Marginata"
     },
-    starting_date: "2023-08-30",
-    status: "GARRAFA_PET"
+    StartingDate: "2023-08-30",
+    Status: "GARRAFA_PET"
   },
   {
-    colmeia_id: "009",
-    code: "009",
-    species: {
-      id: 4,
-      commonName: "Mandaçaia",
-      scientificName: "Melipona Quadrifasciata"
+    ID: "009",
+    Code: 9,
+    Species: {
+      ID: 4,
+      CommonName: "Mandaçaia",
+      ScientificName: "Melipona Quadrifasciata"
     },
-    starting_date: "2023-09-14",
-    status: "PRONTA_PARA_COLHEITA"
+    StartingDate: "2023-09-14",
+    Status: "PRONTA_PARA_COLHEITA"
   },
   {
-    colmeia_id: "010",
-    code: "010",
-    species: {
-      id: 3,
-      commonName: "Mirim-guaçu",
-      scientificName: "Plebeia Gigantea"
+    ID: "010",
+    Code: 10,
+    Species: {
+      ID: 3,
+      CommonName: "Mirim-guaçu",
+      ScientificName: "Plebeia Gigantea"
     },
-    starting_date: "2023-10-08",
-    status: "PRONTO_PARA_MELGUEIRA"
+    StartingDate: "2023-10-08",
+    Status: "PRONTO_PARA_MELGUEIRA"
   }
 ];
 

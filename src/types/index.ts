@@ -1,17 +1,17 @@
 // Type definitions for the application
 
 export interface Colmeia {
-  colmeia_id: string;
-  code?: string;
-  species: SpeciesInfo;
-  starting_date: string;
-  status: string;
+  ID: string;
+  Code?: number;
+  Species: SpeciesInfo;
+  StartingDate: string;
+  Status: string;
 }
 
 export interface SpeciesInfo {
-  id: number;
-  commonName: string;
-  scientificName: string;
+  ID: number;
+  CommonName: string;
+  ScientificName: string;
 }
 
 export type ViewType = 'dashboard' | 'listing';
@@ -35,6 +35,32 @@ export interface AppState {
 export interface ApiResponse {
   data?: Colmeia[];
   error?: string;
+}
+
+// API Service types
+export interface QueuedRequest {
+  id: string;
+  type: 'CREATE_HIVE' | 'UPDATE_HIVE' | 'DELETE_HIVE';
+  data: any;
+  timestamp: number;
+  retryCount: number;
+  maxRetries: number;
+}
+
+// Extract status values from STATUS_LIST
+export type HiveStatus = typeof STATUS_LIST[number]['value'];
+
+export interface CreateHiveRequest {
+  Code?: number;
+  Species: SpeciesInfo;
+  Status: HiveStatus;
+}
+
+export interface ApiResult<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  id?: string;
 }
 
 // Species data
