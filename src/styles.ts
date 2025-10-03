@@ -1,5 +1,7 @@
+import React from 'react';
+
 // Centralized styles for the app
-export const COLORS = {
+export const COLORS: Record<string, string> = {
   primary: '#8B4513',
   background: '#FFFFFF',
   lightYellow: '#FFFACD',
@@ -10,7 +12,7 @@ export const COLORS = {
   white: '#FFFFFF'
 };
 
-export const FONT_SIZES = {
+export const FONT_SIZES: Record<string, string> = {
   heading: 'inherit', // Keep original heading size
   input: '24px',
   button: '24px',
@@ -22,20 +24,20 @@ export const FONT_SIZES = {
   qrInstructions: '18px'
 };
 
-export const SPACING = {
+export const SPACING: Record<string, string> = {
   small: '10px',
   medium: '15px',
   large: '20px',
   xlarge: '25px'
 };
 
-export const BORDER_RADIUS = {
+export const BORDER_RADIUS: Record<string, string> = {
   small: '4px',
   medium: '6px',
   large: '10px'
 };
 
-export const BORDER_WIDTH = {
+export const BORDER_WIDTH: Record<string, string> = {
   thin: '1px',
   medium: '2px'
 };
@@ -47,20 +49,20 @@ export const containerStyle = {
   padding: SPACING.large
 };
 
-export const headingStyle = {
+export const headingStyle: React.CSSProperties = {
   color: COLORS.primary,
-  textAlign: 'center',
+  textAlign: 'center' as const,
   marginBottom: SPACING.large
 };
 
-export const developmentModeStyle = {
+export const developmentModeStyle: React.CSSProperties = {
   backgroundColor: COLORS.warningBlue,
   color: COLORS.warningBlueText,
   padding: SPACING.medium,
   margin: `${SPACING.small} 0`,
   borderRadius: BORDER_RADIUS.small,
   border: `${BORDER_WIDTH.thin} solid ${COLORS.warningBlueBorder}`,
-  textAlign: 'center',
+  textAlign: 'center' as const,
   fontSize: FONT_SIZES.warning,
   fontWeight: '500'
 };
@@ -76,9 +78,9 @@ export const offlineWarningStyle = {
   fontWeight: '500'
 };
 
-export const searchContainerStyle = {
+export const searchContainerStyle: React.CSSProperties = {
   display: 'flex',
-  flexDirection: 'row',
+  flexDirection: 'row' as const,
   gap: SPACING.small,
   marginBottom: SPACING.xlarge,
   alignItems: 'center',
@@ -86,21 +88,21 @@ export const searchContainerStyle = {
   padding: `0 ${SPACING.large}`
 };
 
-export const inputStyle = {
+export const inputStyle: React.CSSProperties = {
   padding: `${SPACING.medium} ${SPACING.large}`,
   fontSize: FONT_SIZES.input,
   border: `${BORDER_WIDTH.medium} solid ${COLORS.primary}`,
   borderRadius: BORDER_RADIUS.medium,
   width: '100%',
   maxWidth: '400px',
-  boxSizing: 'border-box',
-  textAlign: 'center',
+  boxSizing: 'border-box' as const,
+  textAlign: 'center' as const,
   color: COLORS.primary,
   backgroundColor: COLORS.background,
   fontWeight: '500'
 };
 
-export const cameraButtonStyle = {
+export const cameraButtonStyle: React.CSSProperties = {
   padding: SPACING.medium,
   fontSize: FONT_SIZES.button,
   backgroundColor: COLORS.primary,
@@ -110,7 +112,7 @@ export const cameraButtonStyle = {
   cursor: 'pointer',
   width: '60px',
   height: '60px',
-  boxSizing: 'border-box',
+  boxSizing: 'border-box' as const,
   fontWeight: '600',
   display: 'flex',
   alignItems: 'center',
@@ -118,9 +120,9 @@ export const cameraButtonStyle = {
   minWidth: '60px'
 };
 
-export const qrContainerStyle = {
+export const qrContainerStyle: React.CSSProperties = {
   marginBottom: SPACING.xlarge,
-  textAlign: 'center'
+  textAlign: 'center' as const
 };
 
 export const qrInstructionsStyle = {
@@ -130,8 +132,8 @@ export const qrInstructionsStyle = {
   fontWeight: '500'
 };
 
-export const loadingStyle = {
-  textAlign: 'center',
+export const loadingStyle: React.CSSProperties = {
+  textAlign: 'center' as const,
   padding: SPACING.xlarge,
   color: COLORS.primary,
   fontSize: FONT_SIZES.loading,
@@ -166,9 +168,9 @@ export const resultValueStyle = {
   fontSize: FONT_SIZES.body
 };
 
-export const noResultsStyle = {
+export const noResultsStyle: React.CSSProperties = {
   color: COLORS.primary,
-  textAlign: 'center',
+  textAlign: 'center' as const,
   fontSize: FONT_SIZES.body,
   fontWeight: '500',
   padding: SPACING.large
