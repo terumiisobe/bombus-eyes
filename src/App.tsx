@@ -1,9 +1,10 @@
 // import logo from './logo.svg'; // Unused import
-import './App.css';
 import React, { useEffect, useState } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { mockColmeiasData, simulateApiDelay } from './mockData';
 import { Colmeia, SpeciesInfo, ViewType } from './types';
+import { Hexagon } from 'lucide-react';
+import './styles/globals.css';
 import {
   containerStyle,
   headingStyle,
@@ -177,9 +178,23 @@ function App() {
   // };
 
   return (
-    <div style={containerStyle}>
-      <h1 style={headingStyle}>Meliponário Colibri</h1>
+    <div className="min-h-screen bg-background">
     
+    {/* Header */}
+    <div className="bg-amber-50 border-b border-amber-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="text-center">
+            <h1 className="flex items-center justify-center gap-3">
+              <Hexagon className="w-8 h-8 text-amber-700" />
+              Meliponário Isobe
+            </h1>
+            <p className="text-amber-700 mt-1">
+              Sistema de gerenciamento de colmeias
+            </p>
+          </div>
+        </div>
+      </div>
+
 
       {isLocalhost && (
         <div style={developmentModeStyle}>
