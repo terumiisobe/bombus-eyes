@@ -1,8 +1,9 @@
-import logo from './logo.svg';
+// import logo from './logo.svg'; // Unused import
 import './App.css';
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { mockColmeiasData, simulateApiDelay } from './mockData';
+import { Colmeia, SpeciesInfo, ViewType } from './types';
 import {
   containerStyle,
   headingStyle,
@@ -23,14 +24,15 @@ import {
 } from './styles';
 
 function App() {
-  const [data, setData] = useState(null);
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [loading, setLoading] = useState(true);
-  const [searchCode, setSearchCode] = useState('');
-  const [filteredData, setFilteredData] = useState(null);
-  const [showQRScanner, setShowQRScanner] = useState(false);
-  const [qrScanner, setQrScanner] = useState(null);
-  const qrScannerRef = useRef(null);
+  const [data, setData] = useState<Colmeia[] | null>(null);
+  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [searchCode, setSearchCode] = useState<string>('');
+  const [filteredData, setFilteredData] = useState<Colmeia[] | null>(null);
+  const [showQRScanner, setShowQRScanner] = useState<boolean>(false);
+  const [qrScanner, setQrScanner] = useState<Html5QrcodeScanner | null>(null);
+  // const qrScannerRef = useRef<HTMLDivElement>(null); // Unused ref
+
   
   // Determine if we're running locally
   const isLocalhost = window.location.hostname === 'localhost' || 
@@ -40,8 +42,8 @@ function App() {
   const API_URL = isLocalhost ? null : 'https://bombus.onrender.com/colmeias';
 
   // Species mapping function
-  const getSpeciesDisplayName = (scientificName) => {
-    const speciesMap = {
+  const getSpeciesDisplayName = (scientificName: string): SpeciesInfo => {
+    const speciesMap: Record<string, string> = {
       'Melipona Quadrifasciata': 'Mandaçaia',
       'Plebeia Gigantea': 'Mirim-guaçu',
       'Melipona Bicolor': 'Guaraipo',
@@ -126,7 +128,7 @@ function App() {
           console.log('Offline - using cached data');
         } else if (!data) {
           // No cached data and offline, show error
-          setData({ error: 'Não foi possível carregar os dados. Verifique sua conexão.' });
+          setData(null);
         }
       } finally {
         setLoading(false);
@@ -134,7 +136,7 @@ function App() {
     };
 
     fetchData();
-  }, [isOnline, API_URL]);
+  }, [isOnline, API_URL, data]);
 
   // Initialize QR Scanner
   useEffect(() => {
@@ -170,14 +172,15 @@ function App() {
     };
   }, [showQRScanner, qrScanner]);
 
-  const handleSearch = () => {
-    // Search is handled automatically by the useEffect above
-  };
+  // const handleSearch = (): void => {
+  //   // Search is handled automatically by the useEffect above
+  // };
 
   return (
     <div style={containerStyle}>
       <h1 style={headingStyle}>Meliponário Colibri</h1>
-      
+    
+
       {isLocalhost && (
         <div style={developmentModeStyle}>
           🧪 Modo de Desenvolvimento - Usando dados mock

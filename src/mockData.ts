@@ -1,5 +1,7 @@
+import { Colmeia } from './types';
+
 // Mock data for local development
-export const mockColmeiasData = [
+export const mockColmeiasData: Colmeia[] = [
   {
     colmeia_id: "001",
     species: "Melipona Quadrifasciata",
@@ -63,6 +65,6 @@ export const mockColmeiasData = [
 ];
 
 // Helper function to simulate API delay
-export const simulateApiDelay = (ms = 1000) => {
+export const simulateApiDelay = (ms: number = 1000): Promise<void> => {
   return new Promise(resolve => setTimeout(resolve, ms));
 }; 
