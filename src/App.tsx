@@ -3,35 +3,34 @@ import React, { useEffect, useState } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { mockColmeiasData, simulateApiDelay } from './mockData';
 import { Colmeia, SpeciesInfo, ViewType } from './types';
+import { Navigation } from "./components/Navigation";
 import { Hexagon } from 'lucide-react';
+import { Dashboard } from "./components/Dashboard";
+import { SearchBar } from "./components/SearchBar";
+import { Badge } from "./components/ui/badge";
+import { HiveList } from "./components/HiveList";
 import './styles/globals.css';
 import {
   containerStyle,
   headingStyle,
   developmentModeStyle,
   offlineWarningStyle,
-  searchContainerStyle,
-  inputStyle,
-  cameraButtonStyle,
-  qrContainerStyle,
-  qrInstructionsStyle,
-  loadingStyle,
-  resultContainerStyle,
-  resultBoxStyle,
-  resultItemStyle,
-  resultLabelStyle,
-  resultValueStyle,
-  noResultsStyle
+  
 } from './styles';
+import { toast } from 'sonner';
 
 function App() {
   const [data, setData] = useState<Colmeia[] | null>(null);
+  const [hives, setHives] = useState<Colmeia[]>(mockColmeiasData);
+
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchCode, setSearchCode] = useState<string>('');
   const [filteredData, setFilteredData] = useState<Colmeia[] | null>(null);
   const [showQRScanner, setShowQRScanner] = useState<boolean>(false);
   const [qrScanner, setQrScanner] = useState<Html5QrcodeScanner | null>(null);
+  const [currentView, setCurrentView] = useState<'dashboard' | 'listing'>('dashboard');
+
   // const qrScannerRef = useRef<HTMLDivElement>(null); // Unused ref
 
   
@@ -41,26 +40,6 @@ function App() {
                      window.location.hostname === '';
   
   const API_URL = isLocalhost ? null : 'https://bombus.onrender.com/colmeias';
-
-  // Species mapping function
-  const getSpeciesDisplayName = (scientificName: string): SpeciesInfo => {
-    const speciesMap: Record<string, string> = {
-      'Melipona Quadrifasciata': 'Mandaçaia',
-      'Plebeia Gigantea': 'Mirim-guaçu',
-      'Melipona Bicolor': 'Guaraipo',
-      'Scaptotrigona Bipunctata': 'Tubuna',
-      'Tetragosnisca Angustula': 'Jataí',
-      'Scaptotrigona Depilis': 'Canudo',
-      'Plebeia Emerina': 'Mirim-emerina',
-      'Melipona Marginata': 'Manduri'
-    };
-    
-    const commonName = speciesMap[scientificName];
-    if (commonName) {
-      return { commonName, scientificName };
-    }
-    return { commonName: scientificName || 'N/A', scientificName: null };
-  };
 
   // Load data from localStorage on component mount (only for production)
   useEffect(() => {
@@ -139,43 +118,67 @@ function App() {
     fetchData();
   }, [isOnline, API_URL, data]);
 
-  // Initialize QR Scanner
-  useEffect(() => {
-    if (showQRScanner && !qrScanner) {
-      const scanner = new Html5QrcodeScanner(
-        "qr-reader",
-        { 
-          fps: 10, 
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0
-        },
-        false
-      );
+  // // Initialize QR Scanner
+  // useEffect(() => {
+  //   if (showQRScanner && !qrScanner) {
+  //     const scanner = new Html5QrcodeScanner(
+  //       "qr-reader",
+  //       { 
+  //         fps: 10, 
+  //         qrbox: { width: 250, height: 250 },
+  //         aspectRatio: 1.0
+  //       },
+  //       false
+  //     );
 
-      scanner.render((decodedText) => {
-        // QR code scanned successfully
-        setSearchCode(decodedText);
-        setShowQRScanner(false);
-        scanner.clear();
-        setQrScanner(null);
-      }, (error) => {
-        // QR code scan error (ignore)
-      });
+  //     scanner.render((decodedText) => {
+  //       // QR code scanned successfully
+  //       setSearchCode(decodedText);
+  //       setShowQRScanner(false);
+  //       scanner.clear();
+  //       setQrScanner(null);
+  //     }, (error) => {
+  //       // QR code scan error (ignore)
+  //     });
 
-      setQrScanner(scanner);
-    }
+  //     setQrScanner(scanner);
+  //   }
 
-    return () => {
-      if (qrScanner) {
-        qrScanner.clear();
-        setQrScanner(null);
-      }
-    };
-  }, [showQRScanner, qrScanner]);
+  //   return () => {
+  //     if (qrScanner) {
+  //       qrScanner.clear();
+  //       setQrScanner(null);
+  //     }
+  //   };
+  // }, [showQRScanner, qrScanner]);
 
   // const handleSearch = (): void => {
   //   // Search is handled automatically by the useEffect above
   // };
+
+  const handleAddHive = (newHive: {
+    code?: string;
+    species: SpeciesInfo;
+    status: 'EM_DESENVOLVIMENTO' | 'VAZIA' | 'PRONTA_PARA_COLHEITA';
+  }) => {
+    const hive: Colmeia = {
+      colmeia_id: Date.now().toString(),
+      code: newHive.code,
+      species: {
+        id: newHive.species.id,
+        commonName: newHive.species.commonName,
+        scientificName: newHive.species.scientificName
+      },
+      status: newHive.status,
+      starting_date: new Date().toLocaleDateString('pt-BR'),
+    };
+    
+    setHives(prev => [hive, ...prev]);
+  };
+
+  const handleQRScan = () => {
+    toast.info("Funcionalidade de QR Code em desenvolvimento");
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -195,10 +198,15 @@ function App() {
         </div>
       </div>
 
+      {/* Navigation */}
+      <Navigation 
+        currentView={currentView}
+        onViewChange={setCurrentView}
+      />
 
       {isLocalhost && (
         <div style={developmentModeStyle}>
-          🧪 Modo de Desenvolvimento - Usando dados mock
+          🧪 Modo de Desenvolvimento
         </div>
       )}
       
@@ -208,100 +216,40 @@ function App() {
         </div>
       )}
 
-      {/* Search input and button - always visible at top */}
-      <div style={searchContainerStyle}>
-        <input
-          type="text"
-          placeholder="Digitar código da colmeia"
-          value={searchCode}
-          onChange={(e) => setSearchCode(e.target.value)}
-          style={inputStyle}
-        />
-        <button
-          onClick={() => setShowQRScanner(!showQRScanner)}
-          style={cameraButtonStyle}
-          title="Escanear QR Code"
-        >
-          <svg 
-            width="24" 
-            height="24" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path 
-              d="M23 19C23 19.5304 22.7893 20.0391 22.4142 20.4142C22.0391 20.7893 21.5304 21 21 21H3C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V8C1 7.46957 1.21071 6.96086 1.58579 6.58579C1.96086 6.21071 2.46957 6 3 6H7L9 3H15L17 6H21C21.5304 6 22.0391 6.21071 22.4142 6.58579C22.7893 6.96086 23 7.46957 23 8V19Z" 
-              stroke="white" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {currentView === 'dashboard' ? (
+          <Dashboard hives={hives} onAddHive={handleAddHive} />
+        ) : (
+          <div className="space-y-6">
+            {/* Search and Filters */}
+            <SearchBar
+              searchTerm={searchCode}
+              onSearchChange={setSearchCode}
+              onQRScan={handleQRScan}
             />
-            <path 
-              d="M12 17C14.2091 17 16 15.2091 16 13C16 10.7909 14.2091 9 12 9C9.79086 9 8 10.7909 8 13C8 15.2091 9.79086 17 12 17Z" 
-              stroke="white" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
+
+            {/* Results Summary */}
+            {searchCode && (
+              <div className="mb-4">
+                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                  {hives.filter(hive => {
+                    const searchLower = searchCode.toLowerCase();
+                    return (
+                      (hive.code && hive.code.toLowerCase().includes(searchLower)) ||
+                      hive.species.commonName.toLowerCase().includes(searchLower) ||
+                      hive.species.scientificName.toLowerCase().includes(searchLower) ||
+                      hive.status.toLowerCase().includes(searchLower)
+                    );
+                  }).length} resultados para "{searchCode}"
+                </Badge>
+              </div>
+            )}
+
+            {/* Hive List */}
+            <HiveList hives={hives} searchTerm={searchCode} />
+          </div>
+        )}
       </div>
-
-      {/* QR Scanner Container */}
-      {showQRScanner && (
-        <div style={qrContainerStyle}>
-          <div id="qr-reader" style={{ width: '100%', maxWidth: '500px', margin: '0 auto' }}></div>
-          <p style={qrInstructionsStyle}>
-            Posicione o QR code dentro da área de leitura
-          </p>
-        </div>
-      )}
-
-      {loading && (
-        <div style={loadingStyle}>
-          Carregando...
-        </div>
-      )}
-      {!loading && data && (
-        <div style={resultContainerStyle}>
-          {searchCode && (
-            <div>
-              {filteredData && filteredData.length > 0 ? (
-                <div style={resultContainerStyle}>
-                  {filteredData.map((item, index) => (
-                    <div key={index} style={resultBoxStyle}>
-                      <div style={resultItemStyle}>
-                        <strong style={resultLabelStyle}>Código:</strong> <span style={resultValueStyle}>{item.colmeia_id}</span>
-                      </div>
-                      <div style={resultItemStyle}>
-                        <strong style={resultLabelStyle}>Espécie:</strong> <span style={resultValueStyle}>{(() => {
-                          const speciesInfo = getSpeciesDisplayName(item.species);
-                          if (speciesInfo.scientificName) {
-                            return (
-                              <span>
-                                {speciesInfo.commonName} (<em>{speciesInfo.scientificName}</em>)
-                              </span>
-                            );
-                          }
-                          return speciesInfo.commonName;
-                        })()}</span>
-                      </div>
-                      <div style={resultItemStyle}>
-                        <strong style={resultLabelStyle}>Data de Início:</strong> <span style={resultValueStyle}>{item.starting_date ? new Date(item.starting_date).toLocaleDateString('pt-BR') : 'N/A'}</span>
-                      </div>
-                      <div style={resultItemStyle}>
-                        <strong style={resultLabelStyle}>Status:</strong> <span style={resultValueStyle}>{item.status || 'N/A'}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p style={noResultsStyle}>Nenhum resultado encontrado para o código "{searchCode}"</p>
-              )}
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }

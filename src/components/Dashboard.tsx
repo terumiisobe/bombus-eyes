@@ -1,0 +1,132 @@
+import { Hexagon } from "lucide-react";
+import { AddHiveDialog } from "./AddHiveDialog";
+import { Colmeia, SpeciesInfo } from "../types";
+
+interface DashboardProps {
+  hives: Colmeia[];
+  onAddHive: (hive: {
+    code?: string;
+    species: SpeciesInfo;
+    status: 'EM_DESENVOLVIMENTO' | 'VAZIA' | 'PRONTA_PARA_COLHEITA';
+  }) => void;
+}
+
+export function Dashboard({ hives, onAddHive }: DashboardProps) {
+  const developingHives = hives.filter(h => h.status === 'EM_DESENVOLVIMENTO').length;
+  const emptyHives = hives.filter(h => h.status === 'VAZIA').length;
+  const readyToHarvestHives = hives.filter(h => h.status === 'PRONTA_PARA_COLHEITA').length;
+  const inducedHives = hives.filter(h => h.status === 'INDUZIDA').length;
+  const acceptsMelgueiraHives = hives.filter(h => h.status === 'PRONTO_PARA_MELGUEIRA').length;
+  const petBottleHives = hives.filter(h => h.status === 'GARRAFA_PET').length;
+  const movedHives = hives.filter(h => h.status === 'MOVIDA').length;
+  const unknownHives = hives.filter(h => h.status === 'DESCONHECIDO').length;
+
+  return (
+    <div className="space-y-8">
+      {/* Add Hive Section */}
+      <div className="text-center py-12 bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl border border-amber-200">
+        <Hexagon className="w-16 h-16 text-amber-600 mx-auto mb-4" />
+        <h2 className="mb-2 text-amber-900">Adicionar Nova Colmeia</h2>
+        <p className="text-amber-700 mb-6">
+          Registre uma nova colmeia no seu meliponário
+        </p>
+        <AddHiveDialog onAddHive={onAddHive} />
+      </div>
+
+      {/* Stats Table */}
+      <div>
+        <h2 className="mb-6 text-amber-900">Estatísticas do Meliponário</h2>
+        <div className="bg-card rounded-xl border border-amber-200 overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-amber-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-amber-900 font-semibold">Status</th>
+                <th className="px-4 py-3 text-center text-amber-900 font-semibold">Quantidade</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-amber-100">
+              <tr className="hover:bg-green-50">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span className="text-green-700 font-medium">Pronta para Colheita</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-center text-green-700 font-semibold">{readyToHarvestHives}</td>
+              </tr>
+              <tr className="hover:bg-green-50">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span className="text-green-700 font-medium">Pronto para Melgueira</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-center text-green-700 font-semibold">{acceptsMelgueiraHives}</td>
+              </tr>
+              <tr className="hover:bg-yellow-50">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                    <span className="text-yellow-700 font-medium">Em Desenvolvimento</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-center text-yellow-700 font-semibold">{developingHives}</td>
+              </tr>
+              <tr className="hover:bg-yellow-50">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                    <span className="text-yellow-700 font-medium">Induzidas</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-center text-yellow-700 font-semibold">{inducedHives}</td>
+              </tr>
+              <tr className="hover:bg-yellow-50">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                    <span className="text-yellow-700 font-medium">Garrafa Pet</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-center text-yellow-700 font-semibold">{petBottleHives}</td>
+              </tr>
+              <tr className="hover:bg-red-50">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <span className="text-red-700 font-medium">Vazias</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-center text-red-700 font-semibold">{emptyHives}</td>
+              </tr>
+              <tr className="hover:bg-gray-50">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                    <span className="text-gray-700 font-medium">Movidas</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-center text-gray-700 font-semibold">{movedHives}</td>
+              </tr>
+              <tr className="hover:bg-gray-50">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                    <span className="text-gray-700 font-medium">Desconhecido</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-center text-gray-700 font-semibold">{unknownHives}</td>
+              </tr>
+            </tbody>
+            <tfoot className="bg-amber-100">
+              <tr>
+                <td className="px-4 py-3 font-semibold text-amber-900">Total</td>
+                <td className="px-4 py-3 text-center font-bold text-amber-900">{hives.length}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
