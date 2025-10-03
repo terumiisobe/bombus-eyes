@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { mockColmeiasData, simulateApiDelay } from './mockData';
-import { Colmeia, SpeciesInfo, ViewType } from './types';
+import { Colmeia, SpeciesInfo } from './types';
 import { Navigation } from "./components/Navigation";
 import { Hexagon } from 'lucide-react';
 import { Dashboard } from "./components/Dashboard";
@@ -11,8 +11,6 @@ import { Badge } from "./components/ui/badge";
 import { HiveList } from "./components/HiveList";
 import './styles/globals.css';
 import {
-  containerStyle,
-  headingStyle,
   developmentModeStyle,
   offlineWarningStyle,
   
@@ -20,13 +18,10 @@ import {
 import { toast } from 'sonner';
 
 function App() {
-  const [data, setData] = useState<Colmeia[] | null>(null);
-  const [hives, setHives] = useState<Colmeia[]>(mockColmeiasData);
+  const [hives, setHives] = useState<Colmeia[]>([]);
 
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
-  const [loading, setLoading] = useState<boolean>(true);
   const [searchCode, setSearchCode] = useState<string>('');
-  const [filteredData, setFilteredData] = useState<Colmeia[] | null>(null);
   const [showQRScanner, setShowQRScanner] = useState<boolean>(false);
   const [qrScanner, setQrScanner] = useState<Html5QrcodeScanner | null>(null);
   const [currentView, setCurrentView] = useState<'dashboard' | 'listing'>('dashboard');
@@ -47,7 +42,8 @@ function App() {
       const savedData = localStorage.getItem('bombus-data');
       if (savedData) {
         try {
-          setData(JSON.parse(savedData));
+          const parsedData = JSON.parse(savedData);
+          setHives(parsedData);
         } catch (error) {
           console.error('Error parsing saved data:', error);
         }
@@ -69,27 +65,14 @@ function App() {
     };
   }, []);
 
-  // Filter data when search code changes
-  useEffect(() => {
-    if (data && searchCode) {
-      const filtered = Array.isArray(data) 
-        ? data.filter(item => item.colmeia_id && item.colmeia_id.toString() === searchCode)
-        : [];
-      setFilteredData(filtered);
-    } else {
-      setFilteredData(null);
-    }
-  }, [data, searchCode]);
-
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
         if (API_URL) {
           const response = await fetch(API_URL);
           if (response.ok) {
             const newData = await response.json();
-            setData(newData);
+            setHives(newData);
             // Save to localStorage for offline persistence
             localStorage.setItem('bombus-data', JSON.stringify(newData));
           } else {
@@ -98,25 +81,24 @@ function App() {
         } else {
           // Use mock data for localhost
           await simulateApiDelay(1000); // Simulate 1 second delay
-          setData(mockColmeiasData);
+          setHives(mockColmeiasData);
           console.log('Using mock data for local development');
         }
       } catch (err) {
         console.error('Fetch failed:', err);
         // If we're offline and have cached data, keep showing it
-        if (!isOnline && data) {
+        if (!isOnline && hives.length > 0) {
           console.log('Offline - using cached data');
-        } else if (!data) {
+        } else if (hives.length === 0) {
           // No cached data and offline, show error
-          setData(null);
+          setHives([]);
         }
       } finally {
-        setLoading(false);
       }
     };
 
     fetchData();
-  }, [isOnline, API_URL, data]);
+  }, [isOnline, API_URL, hives]);
 
   // // Initialize QR Scanner
   // useEffect(() => {
@@ -189,7 +171,7 @@ function App() {
           <div className="text-center">
             <h1 className="flex items-center justify-center gap-3">
               <Hexagon className="w-8 h-8 text-amber-700" />
-              Meliponário Isobe
+              B O M B U S  |  Meliponário Isobe
             </h1>
             <p className="text-amber-700 mt-1">
               Sistema de gerenciamento de colmeias
