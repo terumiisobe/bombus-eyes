@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { Wifi, WifiOff, Clock, CheckCircle } from "lucide-react";
+import { Wifi, WifiOff, Clock, CheckCircle, RefreshCw } from "lucide-react";
 import { apiService } from "../services/apiService";
 import { QueuedRequest } from "../types";
 
@@ -63,6 +63,10 @@ export function OfflineStatus({ className = "" }: OfflineStatusProps) {
     return "bg-orange-100 text-orange-800";
   };
 
+  const handleSyncClick = async () => {
+    await apiService.processQueueManually();
+  };
+
   if (queuedCount === 0 && isOnline) {
     return null; // Don't show status when everything is synced and online
   }
@@ -73,6 +77,18 @@ export function OfflineStatus({ className = "" }: OfflineStatusProps) {
         {getStatusIcon()}
         <span className="text-xs font-medium">{getStatusText()}</span>
       </Badge>
+      
+      {queuedCount > 0 && isOnline && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleSyncClick}
+          className="h-6 px-2 text-xs"
+        >
+          <RefreshCw className="w-3 h-3 mr-1" />
+          Sincronizar
+        </Button>
+      )}
       
       {queuedCount > 0 && (
         <div className="text-xs text-gray-600">
