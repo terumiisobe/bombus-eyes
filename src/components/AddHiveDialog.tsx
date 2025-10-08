@@ -139,9 +139,27 @@ export function AddHiveDialog({ onAddHive }: AddHiveDialogProps) {
             </Label>
             <Input
               id="code"
+              type="number"
+              inputMode="numeric"
               placeholder="Ex: 001, 1, etc."
-              value={code}
-              onChange={(e) => setCode(Number(e.target.value))}
+              value={code ?? ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '') {
+                  setCode(undefined);
+                } else {
+                  const numValue = Number(value);
+                  if (!isNaN(numValue)) {
+                    setCode(numValue);
+                  }
+                }
+              }}
+              onKeyDown={(e) => {
+                // Prevent e, E, +, -, . for integer-only input
+                if (['e', 'E', '+', '-', '.'].includes(e.key)) {
+                  e.preventDefault();
+                }
+              }}
               className="bg-input-background"
             />
           </div>
