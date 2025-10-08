@@ -1,15 +1,6 @@
-import { Colmeia, SpeciesInfo, HiveStatus } from '../types';
+import { Colmeia, SpeciesInfo, HiveStatus, QueuedRequest } from '../types';
 import { toast } from 'sonner';
-
-// Types for offline request queuing
-export interface QueuedRequest {
-  id: string;
-  type: 'CREATE_HIVE' | 'UPDATE_HIVE' | 'DELETE_HIVE';
-  data: any;
-  timestamp: number;
-  retryCount: number;
-  maxRetries: number;
-}
+import { STORAGE_KEYS } from '../utils/constants';
 
 export interface CreateHiveRequest {
   code?: number;
@@ -61,7 +52,7 @@ class ApiService {
 
   private loadQueuedRequests(): void {
     try {
-      const saved = localStorage.getItem('bombus-request-queue');
+      const saved = localStorage.getItem(STORAGE_KEYS.REQUEST_QUEUE);
       if (saved) {
         this.requestQueue = JSON.parse(saved);
       }
@@ -73,7 +64,7 @@ class ApiService {
 
   private saveQueuedRequests(): void {
     try {
-      localStorage.setItem('bombus-request-queue', JSON.stringify(this.requestQueue));
+      localStorage.setItem(STORAGE_KEYS.REQUEST_QUEUE, JSON.stringify(this.requestQueue));
     } catch (error) {
       console.error('Failed to save queued requests:', error);
     }

@@ -1,26 +1,16 @@
 import { Card, CardContent, CardHeader } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Calendar, Hexagon, Activity } from "lucide-react";
-import { Colmeia } from "../types";
-
+import { Colmeia, HiveStatus } from "../types";
+import { STATUS_CONFIG } from "../utils/constants";
 
 interface HiveCardProps {
   hive: Colmeia;
 }
 
-const statusColors = {
-  PRONTA_PARA_COLHEITA: "bg-green-100 text-green-800 border-green-200",
-  VAZIA: "bg-red-100 text-red-800 border-red-200",
-  EM_DESENVOLVIMENTO: "bg-amber-100 text-amber-800 border-amber-200"
-};
-
-const statusIcons = {
-  PRONTA_PARA_COLHEITA: <Activity className="w-3 h-3" />,
-  VAZIA: <Activity className="w-3 h-3" />,
-  EM_DESENVOLVIMENTO: <Activity className="w-3 h-3" />
-};
-
 export function HiveCard({ hive }: HiveCardProps) {
+  const statusConfig = STATUS_CONFIG[hive.Status as HiveStatus];
+  
   return (
     <Card className="hover:shadow-md transition-shadow duration-200 border-border">
       <CardHeader className="pb-3">
@@ -36,10 +26,10 @@ export function HiveCard({ hive }: HiveCardProps) {
           </div>
           <Badge 
             variant="outline" 
-            className={`${statusColors[hive.Status as keyof typeof statusColors]} border flex items-center gap-1`}
+            className={`${statusConfig?.color || 'bg-gray-100 text-gray-800'} border flex items-center gap-1`}
           >
-            {statusIcons[hive.Status as keyof typeof statusIcons]}
-            {hive.Status}
+            <Activity className="w-3 h-3" />
+            {statusConfig?.label || hive.Status}
           </Badge>
         </div>
       </CardHeader>

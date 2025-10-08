@@ -8,7 +8,6 @@ import { Plus, Hexagon, Hash, Activity, Wifi, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 import { SPECIES_LIST, SpeciesInfo, STATUS_LIST, HiveStatus } from "../types";
 import { apiService } from "../services/apiService";
-import { Value } from "@radix-ui/react-select";
 
 interface AddHiveDialogProps {
   onAddHive: (hive: {

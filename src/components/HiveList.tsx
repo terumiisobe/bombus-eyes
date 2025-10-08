@@ -1,5 +1,6 @@
 import { HiveCard } from "./HiveCard";
 import { Colmeia } from "../types";
+import { filterHives } from "../utils/hiveUtils";
 
 interface HiveListProps {
   hives: Colmeia[];
@@ -7,16 +8,7 @@ interface HiveListProps {
 }
 
 export function HiveList({ hives, searchTerm }: HiveListProps) {
-  const filteredHives = hives.filter(hive => {
-    if (!searchTerm) return true;
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      (hive.Code && hive.Code.toString().includes(searchLower)) ||
-      hive.Species.CommonName.toLowerCase().includes(searchLower) ||
-      hive.Species.ScientificName.toLowerCase().includes(searchLower) ||
-      hive.Status.toLowerCase().includes(searchLower)
-    );
-  });
+  const filteredHives = filterHives(hives, searchTerm);
 
   if (filteredHives.length === 0) {
     return (
