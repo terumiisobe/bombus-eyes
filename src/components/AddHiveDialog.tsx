@@ -93,10 +93,12 @@ export function AddHiveDialog({ onAddHive }: AddHiveDialogProps) {
           toast.success("Colmeia adicionada! Será sincronizada quando a conexão for restabelecida.");
         }
       } else {
+        // Error already translated by apiService
         toast.error(`Erro ao adicionar colmeia: ${result.error}`);
       }
     } catch (error) {
-      toast.error("Erro inesperado ao adicionar colmeia");
+      // Unexpected error
+      toast.error("Erro ao adicionar colmeia: erro inesperado, entre em contato com o suporte.");
       console.error("Error creating hive:", error);
     } finally {
       setIsSubmitting(false);
@@ -279,10 +281,12 @@ export function AddHiveDialog({ onAddHive }: AddHiveDialogProps) {
                       toast.success("Colmeia adicionada! Será sincronizada quando a conexão for restabelecida.");
                     }
                   } else {
+                    // Error already translated by apiService
                     toast.error(`Erro ao adicionar colmeia: ${result.error}`);
                   }
                 } catch (error) {
-                  toast.error("Erro inesperado ao adicionar colmeia");
+                  // Unexpected error
+                  toast.error("Erro ao adicionar colmeia: erro inesperado, entre em contato com o suporte.");
                   console.error("Error creating hive:", error);
                 } finally {
                   setIsSubmitting(false);
