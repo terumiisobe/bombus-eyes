@@ -11,7 +11,7 @@ import { OfflineStatus } from "./components/OfflineStatus";
 import { Toaster } from "./components/ui/sonner";
 import { toast } from 'sonner';
 import { getApiUrl, isLocalEnvironment, STORAGE_KEYS } from './utils/constants';
-import { filterHives } from './utils/hiveUtils';
+import { filterHives, transformApiHives } from './utils/hiveUtils';
 import './styles/globals.css';
 
 function App() {
@@ -58,10 +58,13 @@ function App() {
         if (API_URL) {
           const response = await fetch(API_URL);
           if (response.ok) {
-            const newData = await response.json();
-            setHives(newData);
+            const apiData = await response.json();
+            // Transform API data from snake_case to camelCase
+            const transformedData = transformApiHives(apiData);
+            console.log('Transformed API data:', transformedData);
+            setHives(transformedData);
             // Save to localStorage for offline persistence
-            localStorage.setItem(STORAGE_KEYS.HIVES_DATA, JSON.stringify(newData));
+            localStorage.setItem(STORAGE_KEYS.HIVES_DATA, JSON.stringify(transformedData));
           } else {
             throw new Error(`HTTP error! status: ${response.status}`);
           }

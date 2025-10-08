@@ -1,6 +1,48 @@
 import { Colmeia } from '../types';
 
 /**
+ * Transform API response from snake_case to camelCase
+ */
+export const transformApiHive = (apiHive: any): Colmeia | null => {
+  try {
+    // Handle missing or invalid data
+    if (!apiHive || !apiHive.species) {
+      console.warn('Invalid API hive data:', apiHive);
+      return null;
+    }
+
+    return {
+      ID: apiHive.id || apiHive.ID,
+      Code: apiHive.code || apiHive.Code,
+      Species: {
+        ID: apiHive.species.id || apiHive.species.ID,
+        CommonName: apiHive.species.common_name || apiHive.species.CommonName,
+        ScientificName: apiHive.species.scientific_name || apiHive.species.ScientificName
+      },
+      StartingDate: apiHive.starting_date || apiHive.StartingDate,
+      Status: apiHive.status || apiHive.Status
+    };
+  } catch (error) {
+    console.error('Error transforming API hive data:', error, apiHive);
+    return null;
+  }
+};
+
+/**
+ * Transform array of API hives
+ */
+export const transformApiHives = (apiHives: any[]): Colmeia[] => {
+  if (!Array.isArray(apiHives)) {
+    console.warn('Invalid API hives data - not an array:', apiHives);
+    return [];
+  }
+
+  return apiHives
+    .map(transformApiHive)
+    .filter((hive): hive is Colmeia => hive !== null);
+};
+
+/**
  * Filters hives based on a search term
  * Searches in: Code, Species CommonName, Species ScientificName, and Status
  */

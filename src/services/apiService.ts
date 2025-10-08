@@ -2,6 +2,7 @@ import { Colmeia, SpeciesInfo, HiveStatus, QueuedRequest } from '../types';
 import { toast } from 'sonner';
 import { STORAGE_KEYS } from '../utils/constants';
 import { translateError, translateHttpStatus } from '../utils/errorTranslations';
+import { transformApiHive, transformApiHives } from '../utils/hiveUtils';
 
 export interface CreateHiveRequest {
   code?: number;
@@ -210,20 +211,31 @@ class ApiService {
 
   private async createHiveRequest(data: CreateHiveRequest): Promise<Colmeia> {
     console.log(`📡 POST ${this.baseUrl}/colmeias`, data);
-    const response = await this.makeRequest<Colmeia>(`${this.baseUrl}/colmeias`, {
+    const response = await this.makeRequest<any>(`${this.baseUrl}/colmeias`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
-    console.log('📡 Response:', response);
-    return response;
+    console.log('📡 Raw Response:', response);
+    // Transform snake_case API response to camelCase
+    const transformed = transformApiHive(response);
+    if (!transformed) {
+      throw new Error('Failed to transform API response');
+    }
+    console.log('📡 Transformed Response:', transformed);
+    return transformed;
   }
 
   private async updateHiveRequest(data: any): Promise<Colmeia> {
-    const response = await this.makeRequest<Colmeia>(`${this.baseUrl}/colmeias/${data.id}`, {
+    const response = await this.makeRequest<any>(`${this.baseUrl}/colmeias/${data.id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
-    return response;
+    // Transform snake_case API response to camelCase
+    const transformed = transformApiHive(response);
+    if (!transformed) {
+      throw new Error('Failed to transform API response');
+    }
+    return transformed;
   }
 
   private async deleteHiveRequest(data: { id: string }): Promise<void> {
@@ -299,10 +311,12 @@ class ApiService {
 
   async getHives(): Promise<{ success: boolean; data?: Colmeia[]; error?: string }> {
     try {
-      const response = await this.makeRequest<Colmeia[]>(`${this.baseUrl}/colmeias`, {
+      const response = await this.makeRequest<any[]>(`${this.baseUrl}/colmeias`, {
         method: 'GET',
       });
-      return { success: true, data: response };
+      // Transform snake_case API response to camelCase
+      const transformedData = transformApiHives(response);
+      return { success: true, data: transformedData };
     } catch (error) {
       const statusCode = error && typeof error === 'object' && 'statusCode' in error && typeof error.statusCode === 'number' ? error.statusCode : undefined;
       const errorMessage = error instanceof Error ? translateError(error.message, statusCode) : 'Erro desconhecido';
