@@ -135,13 +135,13 @@ export function AddHiveDialog({ onAddHive }: AddHiveDialogProps) {
           <div className="space-y-2">
             <Label htmlFor="code" className="flex items-center gap-2">
               <Hash className="w-4 h-4" />
-              Código da Colmeia (opcional)
+              Código (opcional)
             </Label>
             <Input
               id="code"
               type="number"
               inputMode="numeric"
-              placeholder="Ex: 001, 1, etc."
+              placeholder="Ex: 12, 13, etc"
               value={code ?? ''}
               onChange={(e) => {
                 const value = e.target.value;
@@ -160,7 +160,7 @@ export function AddHiveDialog({ onAddHive }: AddHiveDialogProps) {
                   e.preventDefault();
                 }
               }}
-              className="bg-input-background"
+              className="bg-yellow-100 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>
           
@@ -179,7 +179,7 @@ export function AddHiveDialog({ onAddHive }: AddHiveDialogProps) {
                 });
               }
             }}>
-              <SelectTrigger className="bg-input-background">
+              <SelectTrigger className="bg-yellow-100 border-0 focus-visible:ring-0 focus-visible:ring-offset-0">
                 <SelectValue placeholder="Selecione uma espécie" />
               </SelectTrigger>
               <SelectContent>
@@ -195,10 +195,10 @@ export function AddHiveDialog({ onAddHive }: AddHiveDialogProps) {
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
               <Activity className="w-4 h-4" />
-              Status
+              Status *
             </Label>
             <Select value={status} onValueChange={(value: HiveStatus) => setStatus(value)}>
-              <SelectTrigger className="bg-input-background">
+              <SelectTrigger className="bg-yellow-100 border-0 focus-visible:ring-0 focus-visible:ring-offset-0">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
