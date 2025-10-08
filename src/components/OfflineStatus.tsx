@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { Wifi, WifiOff, Clock, CheckCircle, RefreshCw } from "lucide-react";
+import { WifiOff, Clock, CheckCircle, RefreshCw } from "lucide-react";
 import { apiService } from "../services/apiService";
 import { QueuedRequest } from "../types";
 

@@ -6,6 +6,15 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontSize: {
+        'xs': '0.9375rem',    // 15px
+        'sm': '1rem',         // 16px
+        'base': '1.125rem',   // 18px
+        'lg': '1.25rem',      // 20px
+        'xl': '1.375rem',     // 22px
+        '2xl': '1.5rem',      // 24px
+        '3xl': '1.875rem',    // 30px
+      },
       colors: {
         background: 'var(--background)',
         foreground: 'var(--foreground)',

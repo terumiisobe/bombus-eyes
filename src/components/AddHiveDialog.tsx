@@ -8,7 +8,6 @@ import { Plus, Hexagon, Hash, Activity, Wifi, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 import { SPECIES_LIST, SpeciesInfo, STATUS_LIST, HiveStatus } from "../types";
 import { apiService } from "../services/apiService";
-import { Value } from "@radix-ui/react-select";
 
 interface AddHiveDialogProps {
   onAddHive: (hive: {
@@ -94,10 +93,12 @@ export function AddHiveDialog({ onAddHive }: AddHiveDialogProps) {
           toast.success("Colmeia adicionada! Será sincronizada quando a conexão for restabelecida.");
         }
       } else {
+        // Error already translated by apiService
         toast.error(`Erro ao adicionar colmeia: ${result.error}`);
       }
     } catch (error) {
-      toast.error("Erro inesperado ao adicionar colmeia");
+      // Unexpected error
+      toast.error("Erro ao adicionar colmeia: erro inesperado, entre em contato com o suporte.");
       console.error("Error creating hive:", error);
     } finally {
       setIsSubmitting(false);
@@ -112,7 +113,7 @@ export function AddHiveDialog({ onAddHive }: AddHiveDialogProps) {
           Adicionar Colmeia
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Hexagon className="w-5 h-5 text-amber-700" />
@@ -132,18 +133,36 @@ export function AddHiveDialog({ onAddHive }: AddHiveDialogProps) {
             )}
           </div>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 pb-2">
           <div className="space-y-2">
             <Label htmlFor="code" className="flex items-center gap-2">
               <Hash className="w-4 h-4" />
-              Código da Colmeia (opcional)
+              Código (opcional)
             </Label>
             <Input
               id="code"
-              placeholder="Ex: 001, 1, etc."
-              value={code}
-              onChange={(e) => setCode(Number(e.target.value))}
-              className="bg-input-background"
+              type="number"
+              inputMode="numeric"
+              placeholder="Ex: 12, 13, etc"
+              value={code ?? ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '') {
+                  setCode(undefined);
+                } else {
+                  const numValue = Number(value);
+                  if (!isNaN(numValue)) {
+                    setCode(numValue);
+                  }
+                }
+              }}
+              onKeyDown={(e) => {
+                // Prevent e, E, +, -, . for integer-only input
+                if (['e', 'E', '+', '-', '.'].includes(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+              className="bg-yellow-100 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>
           
@@ -162,7 +181,7 @@ export function AddHiveDialog({ onAddHive }: AddHiveDialogProps) {
                 });
               }
             }}>
-              <SelectTrigger className="bg-input-background">
+              <SelectTrigger className="bg-yellow-100 border-0 focus-visible:ring-0 focus-visible:ring-offset-0">
                 <SelectValue placeholder="Selecione uma espécie" />
               </SelectTrigger>
               <SelectContent>
@@ -178,10 +197,10 @@ export function AddHiveDialog({ onAddHive }: AddHiveDialogProps) {
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
               <Activity className="w-4 h-4" />
-              Status
+              Status *
             </Label>
             <Select value={status} onValueChange={(value: HiveStatus) => setStatus(value)}>
-              <SelectTrigger className="bg-input-background">
+              <SelectTrigger className="bg-yellow-100 border-0 focus-visible:ring-0 focus-visible:ring-offset-0">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -194,19 +213,26 @@ export function AddHiveDialog({ onAddHive }: AddHiveDialogProps) {
             </Select>
           </div>
           
-          <div className="flex gap-3 pt-4">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4">
             <Button
               type="button"
               variant="outline"
-              className="flex-1"
+              className="w-full sm:flex-1 order-3 sm:order-1"
               onClick={() => setOpen(false)}
             >
               Cancelar
             </Button>
             <Button
+              type="submit"
+              className="w-full sm:flex-1 bg-amber-700 hover:bg-amber-800 text-white order-1 sm:order-2"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Adicionando..." : "Adicionar"}
+            </Button>
+            <Button
               type="button"
               variant="outline"
-              className="flex-1 border-amber-300 text-amber-700 hover:bg-amber-50"
+              className="w-full sm:flex-1 border-amber-300 text-amber-700 hover:bg-amber-50 order-2 sm:order-3"
               disabled={isSubmitting}
               onClick={async () => {
                 // Add hive without closing dialog
@@ -255,10 +281,12 @@ export function AddHiveDialog({ onAddHive }: AddHiveDialogProps) {
                       toast.success("Colmeia adicionada! Será sincronizada quando a conexão for restabelecida.");
                     }
                   } else {
+                    // Error already translated by apiService
                     toast.error(`Erro ao adicionar colmeia: ${result.error}`);
                   }
                 } catch (error) {
-                  toast.error("Erro inesperado ao adicionar colmeia");
+                  // Unexpected error
+                  toast.error("Erro ao adicionar colmeia: erro inesperado, entre em contato com o suporte.");
                   console.error("Error creating hive:", error);
                 } finally {
                   setIsSubmitting(false);
@@ -266,13 +294,6 @@ export function AddHiveDialog({ onAddHive }: AddHiveDialogProps) {
               }}
             >
               {isSubmitting ? "Adicionando..." : "Adicionar outra"}
-            </Button>
-            <Button
-              type="submit"
-              className="flex-1 bg-amber-700 hover:bg-amber-800 text-white"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Adicionando..." : "Adicionar"}
             </Button>
           </div>
         </form>

@@ -1,15 +1,7 @@
-import { Colmeia, SpeciesInfo, HiveStatus } from '../types';
+import { Colmeia, SpeciesInfo, HiveStatus, QueuedRequest } from '../types';
 import { toast } from 'sonner';
-
-// Types for offline request queuing
-export interface QueuedRequest {
-  id: string;
-  type: 'CREATE_HIVE' | 'UPDATE_HIVE' | 'DELETE_HIVE';
-  data: any;
-  timestamp: number;
-  retryCount: number;
-  maxRetries: number;
-}
+import { STORAGE_KEYS } from '../utils/constants';
+import { translateError, translateHttpStatus } from '../utils/errorTranslations';
 
 export interface CreateHiveRequest {
   code?: number;
@@ -61,7 +53,7 @@ class ApiService {
 
   private loadQueuedRequests(): void {
     try {
-      const saved = localStorage.getItem('bombus-request-queue');
+      const saved = localStorage.getItem(STORAGE_KEYS.REQUEST_QUEUE);
       if (saved) {
         this.requestQueue = JSON.parse(saved);
       }
@@ -73,7 +65,7 @@ class ApiService {
 
   private saveQueuedRequests(): void {
     try {
-      localStorage.setItem('bombus-request-queue', JSON.stringify(this.requestQueue));
+      localStorage.setItem(STORAGE_KEYS.REQUEST_QUEUE, JSON.stringify(this.requestQueue));
     } catch (error) {
       console.error('Failed to save queued requests:', error);
     }
@@ -93,7 +85,21 @@ class ApiService {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      let errorMessage = '';
+      
+      try {
+        // Try to parse error message from backend
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || '';
+      } catch (e) {
+        // If can't parse, fallback to status text
+        errorMessage = response.statusText;
+      }
+
+      // Create error with status code attached
+      const error: any = new Error(errorMessage || translateHttpStatus(response.status));
+      error.statusCode = response.status;
+      throw error;
     }
 
     return response.json();
@@ -149,18 +155,20 @@ class ApiService {
         if (request.retryCount >= request.maxRetries) {
           console.error('💀 Request failed after max retries, removing from queue:', request);
           
-          // Show error toast for failed request
-          switch (request.type) {
-            case 'CREATE_HIVE':
-              toast.error('Falha ao sincronizar colmeia após várias tentativas');
-              break;
-            case 'UPDATE_HIVE':
-              toast.error('Falha ao atualizar colmeia após várias tentativas');
-              break;
-            case 'DELETE_HIVE':
-              toast.error('Falha ao remover colmeia após várias tentativas');
-              break;
-          }
+        // Show error toast for failed request
+        const statusCode = error && typeof error === 'object' && 'statusCode' in error && typeof error.statusCode === 'number' ? error.statusCode : undefined;
+        const errorMsg = error instanceof Error ? translateError(error.message, statusCode) : 'Erro desconhecido';
+        switch (request.type) {
+          case 'CREATE_HIVE':
+            toast.error(`Falha ao sincronizar colmeia: ${errorMsg}`);
+            break;
+          case 'UPDATE_HIVE':
+            toast.error(`Falha ao atualizar colmeia: ${errorMsg}`);
+            break;
+          case 'DELETE_HIVE':
+            toast.error(`Falha ao remover colmeia: ${errorMsg}`);
+            break;
+        }
           
           this.requestQueue.shift(); // Remove failed request
           this.saveQueuedRequests();
@@ -251,7 +259,9 @@ class ApiService {
         return { success: true, id: requestId };
       }
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+      const statusCode = error && typeof error === 'object' && 'statusCode' in error && typeof error.statusCode === 'number' ? error.statusCode : undefined;
+      const errorMessage = error instanceof Error ? translateError(error.message, statusCode) : 'Erro desconhecido';
+      return { success: false, error: errorMessage };
     }
   }
 
@@ -265,7 +275,9 @@ class ApiService {
         return { success: true, id: requestId };
       }
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+      const statusCode = error && typeof error === 'object' && 'statusCode' in error && typeof error.statusCode === 'number' ? error.statusCode : undefined;
+      const errorMessage = error instanceof Error ? translateError(error.message, statusCode) : 'Erro desconhecido';
+      return { success: false, error: errorMessage };
     }
   }
 
@@ -279,7 +291,9 @@ class ApiService {
         return { success: true, id: requestId };
       }
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+      const statusCode = error && typeof error === 'object' && 'statusCode' in error && typeof error.statusCode === 'number' ? error.statusCode : undefined;
+      const errorMessage = error instanceof Error ? translateError(error.message, statusCode) : 'Erro desconhecido';
+      return { success: false, error: errorMessage };
     }
   }
 
@@ -290,7 +304,9 @@ class ApiService {
       });
       return { success: true, data: response };
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+      const statusCode = error && typeof error === 'object' && 'statusCode' in error && typeof error.statusCode === 'number' ? error.statusCode : undefined;
+      const errorMessage = error instanceof Error ? translateError(error.message, statusCode) : 'Erro desconhecido';
+      return { success: false, error: errorMessage };
     }
   }
 

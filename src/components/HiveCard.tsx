@@ -1,54 +1,44 @@
 import { Card, CardContent, CardHeader } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Calendar, Hexagon, Activity } from "lucide-react";
-import { Colmeia } from "../types";
-
+import { Colmeia, HiveStatus } from "../types";
+import { STATUS_CONFIG } from "../utils/constants";
 
 interface HiveCardProps {
   hive: Colmeia;
 }
 
-const statusColors = {
-  PRONTA_PARA_COLHEITA: "bg-green-100 text-green-800 border-green-200",
-  VAZIA: "bg-red-100 text-red-800 border-red-200",
-  EM_DESENVOLVIMENTO: "bg-amber-100 text-amber-800 border-amber-200"
-};
-
-const statusIcons = {
-  PRONTA_PARA_COLHEITA: <Activity className="w-3 h-3" />,
-  VAZIA: <Activity className="w-3 h-3" />,
-  EM_DESENVOLVIMENTO: <Activity className="w-3 h-3" />
-};
-
 export function HiveCard({ hive }: HiveCardProps) {
+  const statusConfig = STATUS_CONFIG[hive.Status as HiveStatus];
+  
   return (
     <Card className="hover:shadow-md transition-shadow duration-200 border-border">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <h3 className="font-medium">
+      <CardHeader className="pb-3 pt-3">
+        <div className="flex flex-col">
+          <div className="flex items-center justify-between gap-2 -mx-2 mb-4">
+            <h3 className="font-medium text-lg">
               {hive.Code ? `Colmeia ${hive.Code}` : 'Colmeia sem código'}
             </h3>
+            <Badge 
+              variant="outline" 
+              className={`${statusConfig?.color || 'bg-gray-100 text-gray-800'} border flex items-center gap-1 flex-shrink-0 text-xs`}
+            >
+              <Activity className="w-3 h-3" />
+              <span className="whitespace-nowrap">{statusConfig?.label || hive.Status}</span>
+            </Badge>
+          </div>
+          <div className="flex flex-col justify-center space-y-2">
             <div className="flex items-center gap-2 text-muted-foreground">
-              <Hexagon className="w-4 h-4" />
-              <span className="text-sm">{hive.Species.CommonName} ({hive.Species.ScientificName})</span>
+              <Hexagon className="w-4 h-4 flex-shrink-0" />
+              <span className="text-base">{hive.Species.CommonName} ({hive.Species.ScientificName})</span>
+            </div>
+            <div className="flex items-center gap-2 text-base text-muted-foreground">
+              <Calendar className="w-4 h-4" />
+              <span>Criada em {hive.StartingDate}</span>
             </div>
           </div>
-          <Badge 
-            variant="outline" 
-            className={`${statusColors[hive.Status as keyof typeof statusColors]} border flex items-center gap-1`}
-          >
-            {statusIcons[hive.Status as keyof typeof statusIcons]}
-            {hive.Status}
-          </Badge>
         </div>
       </CardHeader>
-      <CardContent className="pt-0">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Calendar className="w-4 h-4" />
-          <span>Criada em {hive.StartingDate}</span>
-        </div>
-      </CardContent>
     </Card>
   );
 }

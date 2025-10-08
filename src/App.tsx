@@ -1,6 +1,4 @@
-// import logo from './logo.svg'; // Unused import
-import React, { useEffect, useState } from 'react';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { useEffect, useState } from 'react';
 import { mockColmeiasData, simulateApiDelay } from './mockData';
 import { Colmeia, SpeciesInfo, HiveStatus } from './types';
 import { Navigation } from "./components/Navigation";
@@ -11,38 +9,24 @@ import { Badge } from "./components/ui/badge";
 import { HiveList } from "./components/HiveList";
 import { OfflineStatus } from "./components/OfflineStatus";
 import { Toaster } from "./components/ui/sonner";
-import { apiService } from "./services/apiService";
-import './styles/globals.css';
-import {
-  developmentModeStyle,
-  offlineWarningStyle,
-  
-} from './styles';
 import { toast } from 'sonner';
+import { getApiUrl, isLocalEnvironment, STORAGE_KEYS } from './utils/constants';
+import { filterHives } from './utils/hiveUtils';
+import './styles/globals.css';
 
 function App() {
   const [hives, setHives] = useState<Colmeia[]>([]);
-
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
   const [searchCode, setSearchCode] = useState<string>('');
-  const [showQRScanner, setShowQRScanner] = useState<boolean>(false);
-  const [qrScanner, setQrScanner] = useState<Html5QrcodeScanner | null>(null);
   const [currentView, setCurrentView] = useState<'dashboard' | 'listing'>('dashboard');
-
-  // const qrScannerRef = useRef<HTMLDivElement>(null); // Unused ref
-
   
-  // Determine if we're running locally
-  const isLocalhost = window.location.hostname === 'localhost' || 
-                     window.location.hostname === '127.0.0.1' ||
-                     window.location.hostname === '';
-  
-  const API_URL = isLocalhost ? null : 'https://bombus.onrender.com/colmeias';
+  const isLocalhost = isLocalEnvironment();
+  const API_URL = getApiUrl();
 
   // Load data from localStorage on component mount (only for production)
   useEffect(() => {
     if (!isLocalhost) {
-      const savedData = localStorage.getItem('bombus-data');
+      const savedData = localStorage.getItem(STORAGE_KEYS.HIVES_DATA);
       if (savedData) {
         try {
           const parsedData = JSON.parse(savedData);
@@ -77,7 +61,7 @@ function App() {
             const newData = await response.json();
             setHives(newData);
             // Save to localStorage for offline persistence
-            localStorage.setItem('bombus-data', JSON.stringify(newData));
+            localStorage.setItem(STORAGE_KEYS.HIVES_DATA, JSON.stringify(newData));
           } else {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
@@ -89,57 +73,16 @@ function App() {
         }
       } catch (err) {
         console.error('Fetch failed:', err);
-        // If we're offline and have cached data, keep showing it
-        if (!isOnline && hives.length > 0) {
+        // Don't clear hives on fetch error - keep cached data
+        if (!isOnline) {
           console.log('Offline - using cached data');
-        } else if (hives.length === 0) {
-          // No cached data and offline, show error
-          setHives([]);
         }
-      } finally {
       }
     };
 
     fetchData();
-  }, [isOnline, API_URL, hives]);
-
-  // // Initialize QR Scanner
-  // useEffect(() => {
-  //   if (showQRScanner && !qrScanner) {
-  //     const scanner = new Html5QrcodeScanner(
-  //       "qr-reader",
-  //       { 
-  //         fps: 10, 
-  //         qrbox: { width: 250, height: 250 },
-  //         aspectRatio: 1.0
-  //       },
-  //       false
-  //     );
-
-  //     scanner.render((decodedText) => {
-  //       // QR code scanned successfully
-  //       setSearchCode(decodedText);
-  //       setShowQRScanner(false);
-  //       scanner.clear();
-  //       setQrScanner(null);
-  //     }, (error) => {
-  //       // QR code scan error (ignore)
-  //     });
-
-  //     setQrScanner(scanner);
-  //   }
-
-  //   return () => {
-  //     if (qrScanner) {
-  //       qrScanner.clear();
-  //       setQrScanner(null);
-  //     }
-  //   };
-  // }, [showQRScanner, qrScanner]);
-
-  // const handleSearch = (): void => {
-  //   // Search is handled automatically by the useEffect above
-  // };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOnline, API_URL]);
 
   const handleAddHive = (newHive: {
     code?: number;
@@ -170,16 +113,16 @@ function App() {
     
     {/* Header */}
     <div className="bg-amber-50 border-b border-amber-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="text-center">
-            <h1 className="flex items-center justify-center gap-3">
+            <h1 className="flex items-center justify-center gap-3 text-lg">
               <Hexagon className="w-8 h-8 text-amber-700" />
               B O M B U S  |  Meliponário Isobe
             </h1>
-            <p className="text-amber-700 mt-1">
+            <p className="text-amber-700 mt-1 text-sm">
               Sistema de gerenciamento de colmeias
             </p>
-            <div className="mt-3 flex justify-center gap-4">
+            <div className="mt-2 flex justify-center gap-4">
               <OfflineStatus />
             </div>
           </div>
@@ -191,12 +134,6 @@ function App() {
         currentView={currentView}
         onViewChange={setCurrentView}
       />
-
-      {isLocalhost && (
-        <div style={developmentModeStyle}>
-          🧪 Modo de Desenvolvimento
-        </div>
-      )}
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {currentView === 'dashboard' ? (
@@ -214,15 +151,7 @@ function App() {
             {searchCode && (
               <div className="mb-4">
                 <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-                  {hives.filter(hive => {
-                    const searchLower = searchCode.toLowerCase();
-                    return (
-                      (hive.Code && hive.Code.toString().includes(searchLower)) ||
-                      hive.Species.CommonName.toLowerCase().includes(searchLower) ||
-                      hive.Species.ScientificName.toLowerCase().includes(searchLower) ||
-                      hive.Status.toLowerCase().includes(searchLower)
-                    );
-                  }).length} resultados para "{searchCode}"
+                  {filterHives(hives, searchCode).length} resultados para "{searchCode}"
                 </Badge>
               </div>
             )}

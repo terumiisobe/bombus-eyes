@@ -16,26 +16,8 @@ export interface SpeciesInfo {
 
 export type ViewType = 'dashboard' | 'listing';
 
-export interface NavigationProps {
-  currentView: ViewType;
-  onViewChange: (view: ViewType) => void;
-}
-
-export interface AppState {
-  data: Colmeia[] | null;
-  isOnline: boolean;
-  loading: boolean;
-  searchCode: string;
-  filteredData: Colmeia[] | null;
-  showQRScanner: boolean;
-  qrScanner: any; // Html5QrcodeScanner type
-  currentView: ViewType;
-}
-
-export interface ApiResponse {
-  data?: Colmeia[];
-  error?: string;
-}
+// Extract status values from STATUS_LIST
+export type HiveStatus = typeof STATUS_LIST[number]['value'];
 
 // API Service types
 export interface QueuedRequest {
@@ -45,22 +27,6 @@ export interface QueuedRequest {
   timestamp: number;
   retryCount: number;
   maxRetries: number;
-}
-
-// Extract status values from STATUS_LIST
-export type HiveStatus = typeof STATUS_LIST[number]['value'];
-
-export interface CreateHiveRequest {
-  Code?: number;
-  Species: SpeciesInfo;
-  Status: HiveStatus;
-}
-
-export interface ApiResult<T = any> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  id?: string;
 }
 
 // Species data
