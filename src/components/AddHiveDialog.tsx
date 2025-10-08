@@ -111,7 +111,7 @@ export function AddHiveDialog({ onAddHive }: AddHiveDialogProps) {
           Adicionar Colmeia
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Hexagon className="w-5 h-5 text-amber-700" />
@@ -131,7 +131,7 @@ export function AddHiveDialog({ onAddHive }: AddHiveDialogProps) {
             )}
           </div>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 pb-2">
           <div className="space-y-2">
             <Label htmlFor="code" className="flex items-center gap-2">
               <Hash className="w-4 h-4" />
@@ -193,19 +193,26 @@ export function AddHiveDialog({ onAddHive }: AddHiveDialogProps) {
             </Select>
           </div>
           
-          <div className="flex gap-3 pt-4">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4">
             <Button
               type="button"
               variant="outline"
-              className="flex-1"
+              className="w-full sm:flex-1 order-3 sm:order-1"
               onClick={() => setOpen(false)}
             >
               Cancelar
             </Button>
             <Button
+              type="submit"
+              className="w-full sm:flex-1 bg-amber-700 hover:bg-amber-800 text-white order-1 sm:order-2"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Adicionando..." : "Adicionar"}
+            </Button>
+            <Button
               type="button"
               variant="outline"
-              className="flex-1 border-amber-300 text-amber-700 hover:bg-amber-50"
+              className="w-full sm:flex-1 border-amber-300 text-amber-700 hover:bg-amber-50 order-2 sm:order-3"
               disabled={isSubmitting}
               onClick={async () => {
                 // Add hive without closing dialog
@@ -265,13 +272,6 @@ export function AddHiveDialog({ onAddHive }: AddHiveDialogProps) {
               }}
             >
               {isSubmitting ? "Adicionando..." : "Adicionar outra"}
-            </Button>
-            <Button
-              type="submit"
-              className="flex-1 bg-amber-700 hover:bg-amber-800 text-white"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Adicionando..." : "Adicionar"}
             </Button>
           </div>
         </form>
