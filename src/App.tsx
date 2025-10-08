@@ -73,19 +73,16 @@ function App() {
         }
       } catch (err) {
         console.error('Fetch failed:', err);
-        // If we're offline and have cached data, keep showing it
-        if (!isOnline && hives.length > 0) {
+        // Don't clear hives on fetch error - keep cached data
+        if (!isOnline) {
           console.log('Offline - using cached data');
-        } else if (hives.length === 0) {
-          // No cached data and offline, show error
-          setHives([]);
         }
-      } finally {
       }
     };
 
     fetchData();
-  }, [isOnline, API_URL, hives]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOnline, API_URL]);
 
   const handleAddHive = (newHive: {
     code?: number;
