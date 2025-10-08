@@ -8,7 +8,7 @@ interface NavigationProps {
 
 export function Navigation({ currentView, onViewChange }: NavigationProps) {
   return (
-    <div className="flex justify-center gap-4 py-6 bg-yellow-50 border-b border-amber-200">
+    <div className="flex justify-center gap-4 py-3 bg-yellow-50 border-b border-amber-200">
       <div className="flex gap-2">
         <Button
           onClick={() => onViewChange('dashboard')}

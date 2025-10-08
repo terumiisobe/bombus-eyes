@@ -113,16 +113,16 @@ function App() {
     
     {/* Header */}
     <div className="bg-amber-50 border-b border-amber-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="text-center">
-            <h1 className="flex items-center justify-center gap-3">
+            <h1 className="flex items-center justify-center gap-3 text-lg">
               <Hexagon className="w-8 h-8 text-amber-700" />
               B O M B U S  |  Meliponário Isobe
             </h1>
-            <p className="text-amber-700 mt-1">
+            <p className="text-amber-700 mt-1 text-sm">
               Sistema de gerenciamento de colmeias
             </p>
-            <div className="mt-3 flex justify-center gap-4">
+            <div className="mt-2 flex justify-center gap-4">
               <OfflineStatus />
             </div>
           </div>
@@ -134,12 +134,6 @@ function App() {
         currentView={currentView}
         onViewChange={setCurrentView}
       />
-
-      {isLocalhost && (
-        <div className="bg-blue-50 text-blue-700 p-4 mx-4 my-2 rounded border border-blue-200 text-center font-medium">
-          🧪 Modo de Desenvolvimento
-        </div>
-      )}
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {currentView === 'dashboard' ? (
