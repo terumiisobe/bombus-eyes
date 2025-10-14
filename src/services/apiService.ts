@@ -3,12 +3,15 @@ import { toast } from 'sonner';
 import { STORAGE_KEYS } from '../utils/constants';
 import { translateError, translateHttpStatus } from '../utils/errorTranslations';
 import { transformApiHive, transformApiHives } from '../utils/hiveUtils';
+import Cookies from 'js-cookie';
 
 export interface CreateHiveRequest {
   code?: number;
   species: SpeciesInfo;
   status: HiveStatus;
 }
+
+const SESSION_COOKIE_NAME = 'bombus_session_id';
 
 class ApiService {
   private baseUrl: string;
@@ -28,6 +31,19 @@ class ApiService {
                        window.location.hostname === '';
     
     return isLocalhost ? 'http://localhost:8080' : 'https://bombus.onrender.com';
+  }
+
+  private getSessionId(): string | undefined {
+    return Cookies.get(SESSION_COOKIE_NAME);
+  }
+
+  private setSessionId(sessionId: string): void {
+    // Set cookie with 7 days expiration
+    Cookies.set(SESSION_COOKIE_NAME, sessionId, { expires: 7 });
+  }
+
+  private removeSessionId(): void {
+    Cookies.remove(SESSION_COOKIE_NAME);
   }
 
   private setupOnlineStatusListener(): void {
@@ -77,12 +93,25 @@ class ApiService {
   }
 
   private async makeRequest<T>(url: string, options: RequestInit): Promise<T> {
+    const sessionId = this.getSessionId();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    // Add existing headers
+    if (options.headers) {
+      const existingHeaders = options.headers as Record<string, string>;
+      Object.assign(headers, existingHeaders);
+    }
+
+    // Add session ID to headers if it exists
+    if (sessionId) {
+      headers['X-Session-ID'] = sessionId;
+    }
+
     const response = await fetch(url, {
       ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+      headers,
     });
 
     if (!response.ok) {
@@ -362,6 +391,56 @@ class ApiService {
     } else {
       toast.info(`${queueCount} colmeia(s) aguardando sincronização.`);
     }
+  }
+
+  // Authentication methods
+  async authenticate(email: string, password: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      // Create Basic Auth header
+      const credentials = btoa(`${email}:${password}`);
+      const response = await fetch(`${this.baseUrl}/authenticate`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Basic ${credentials}`,
+        },
+      });
+
+      if (!response.ok) {
+        let errorMessage = '';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || '';
+        } catch (e) {
+          errorMessage = response.statusText;
+        }
+        const error: any = new Error(errorMessage || translateHttpStatus(response.status));
+        error.statusCode = response.status;
+        throw error;
+      }
+
+      const data = await response.json();
+      
+      // Store session ID in cookie
+      if (data.session_id || data.sessionId || data.sessionID) {
+        const sessionId = data.session_id || data.sessionId || data.sessionID;
+        this.setSessionId(sessionId);
+        return { success: true };
+      } else {
+        throw new Error('No session ID received from server');
+      }
+    } catch (error) {
+      const statusCode = error && typeof error === 'object' && 'statusCode' in error && typeof error.statusCode === 'number' ? error.statusCode : undefined;
+      const errorMessage = error instanceof Error ? translateError(error.message, statusCode) : 'Erro desconhecido';
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  logout(): void {
+    this.removeSessionId();
+  }
+
+  isAuthenticated(): boolean {
+    return !!this.getSessionId();
   }
 }
 

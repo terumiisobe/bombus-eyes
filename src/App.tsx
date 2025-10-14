@@ -12,6 +12,7 @@ import { Toaster } from "./components/ui/sonner";
 import { toast } from 'sonner';
 import { getApiUrl, isLocalEnvironment, STORAGE_KEYS } from './utils/constants';
 import { filterHives, transformApiHives } from './utils/hiveUtils';
+import { apiService } from './services/apiService';
 import './styles/globals.css';
 import { Login } from './components/Login';
 import { ForgotPassword } from './components/ForgotPassword';
@@ -33,10 +34,12 @@ function App() {
 
     // Check for stored auth on mount
     useEffect(() => {
-      const storedUser = localStorage.getItem(AUTH_KEY);
-      if (storedUser) {
-        setCurrentUser(storedUser);
-        setIsAuthenticated(true);
+      if (apiService.isAuthenticated()) {
+        const storedUser = localStorage.getItem(AUTH_KEY);
+        if (storedUser) {
+          setCurrentUser(storedUser);
+          setIsAuthenticated(true);
+        }
       }
     }, []);
 
@@ -128,13 +131,14 @@ function App() {
     toast.info("Funcionalidade de QR Code em desenvolvimento");
   };
 
-  const handleLogin = (email: string, password: string) => {
+  const handleLogin = (email: string) => {
     setCurrentUser(email);
     setIsAuthenticated(true);
     localStorage.setItem(AUTH_KEY, email);
   };
 
   const handleLogout = () => {
+    apiService.logout();
     setCurrentUser(null);
     setIsAuthenticated(false);
     localStorage.removeItem(AUTH_KEY);

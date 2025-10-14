@@ -6,9 +6,10 @@ import { Label } from "./ui/label";
 import { Checkbox } from "./ui/checkbox";
 import { Card, CardContent } from "./ui/card";
 import { toast } from "sonner";
+import { apiService } from "../services/apiService";
 
 interface LoginProps {
-  onLogin: (email: string, password: string) => void;
+  onLogin: (email: string) => void;
   onForgotPassword: () => void;
 }
 
@@ -28,18 +29,20 @@ export function Login({ onLogin, onForgotPassword }: LoginProps) {
 
     setIsLoading(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Mock authentication - accept any email/password for demo
-    if (email && password) {
-      onLogin(email, password);
-      toast.success("Login realizado com sucesso!");
-    } else {
-      toast.error("Email ou senha inválidos");
+    try {
+      const result = await apiService.authenticate(email, password);
+      
+      if (result.success) {
+        onLogin(email);
+        toast.success("Login realizado com sucesso!");
+      } else {
+        toast.error(result.error || "Email ou senha inválidos");
+      }
+    } catch (error) {
+      toast.error("Erro ao fazer login. Tente novamente.");
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   return (
