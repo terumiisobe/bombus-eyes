@@ -13,15 +13,32 @@ import { toast } from 'sonner';
 import { getApiUrl, isLocalEnvironment, STORAGE_KEYS } from './utils/constants';
 import { filterHives, transformApiHives } from './utils/hiveUtils';
 import './styles/globals.css';
+import { Login } from './components/Login';
+import { ForgotPassword } from './components/ForgotPassword';
+import { ResetPassword } from './components/ResetPassword';
+
+const AUTH_KEY = 'hive_auth_user';
 
 function App() {
   const [hives, setHives] = useState<Colmeia[]>([]);
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
   const [searchCode, setSearchCode] = useState<string>('');
   const [currentView, setCurrentView] = useState<'dashboard' | 'listing'>('dashboard');
-  
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
+  const [authView, setAuthView] = useState<'login' | 'forgot-password' | 'reset-password'>('login');
+
   const isLocalhost = isLocalEnvironment();
   const API_URL = getApiUrl();
+
+    // Check for stored auth on mount
+    useEffect(() => {
+      const storedUser = localStorage.getItem(AUTH_KEY);
+      if (storedUser) {
+        setCurrentUser(storedUser);
+        setIsAuthenticated(true);
+      }
+    }, []);
 
   // Load data from localStorage on component mount (only for production)
   useEffect(() => {
@@ -110,6 +127,54 @@ function App() {
   const handleQRScan = () => {
     toast.info("Funcionalidade de QR Code em desenvolvimento");
   };
+
+  const handleLogin = (email: string, password: string) => {
+    setCurrentUser(email);
+    setIsAuthenticated(true);
+    localStorage.setItem(AUTH_KEY, email);
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setIsAuthenticated(false);
+    localStorage.removeItem(AUTH_KEY);
+    toast.info("Você saiu do sistema");
+  };
+
+  const handleForgotPassword = () => {
+    setAuthView('forgot-password');
+  };
+
+  const handleBackToLogin = () => {
+    setAuthView('login');
+  };
+
+  const handleGoToResetPassword = () => {
+    setAuthView('reset-password');
+  };
+
+  const handleResetPasswordSuccess = () => {
+    setAuthView('login');
+    toast.success("Você pode fazer login com sua nova senha");
+  };
+
+  // Show authentication screens if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <>
+        <Toaster position="top-right" />
+        {authView === 'login' && (
+          <Login onLogin={handleLogin} onForgotPassword={handleForgotPassword} />
+        )}
+        {authView === 'forgot-password' && (
+          <ForgotPassword onBack={handleBackToLogin} onResetPassword={handleGoToResetPassword} />
+        )}
+        {authView === 'reset-password' && (
+          <ResetPassword onSuccess={handleResetPasswordSuccess} />
+        )}
+      </>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
