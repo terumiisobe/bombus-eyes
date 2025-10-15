@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { mockColmeiasData, simulateApiDelay } from './mockData';
 import { Colmeia, SpeciesInfo, HiveStatus } from './types';
 import { Navigation } from "./components/Navigation";
 import { Hexagon } from 'lucide-react';
@@ -10,8 +9,8 @@ import { HiveList } from "./components/HiveList";
 import { OfflineStatus } from "./components/OfflineStatus";
 import { Toaster } from "./components/ui/sonner";
 import { toast } from 'sonner';
-import { getApiUrl, isLocalEnvironment, STORAGE_KEYS } from './utils/constants';
-import { filterHives, transformApiHives } from './utils/hiveUtils';
+import { isLocalEnvironment, STORAGE_KEYS } from './utils/constants';
+import { filterHives } from './utils/hiveUtils';
 import { apiService } from './services/apiService';
 import './styles/globals.css';
 import { Login } from './components/Login';
@@ -30,9 +29,8 @@ function App() {
   const [authView, setAuthView] = useState<'login' | 'forgot-password' | 'reset-password'>('login');
 
   const isLocalhost = isLocalEnvironment();
-  const API_URL = getApiUrl();
 
-    // Check for stored auth on mount
+  // Check for stored auth on mount
     useEffect(() => {
       if (apiService.isAuthenticated()) {
         const storedUser = localStorage.getItem(AUTH_KEY);
@@ -75,24 +73,14 @@ function App() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (API_URL) {
-          const response = await fetch(API_URL);
-          if (response.ok) {
-            const apiData = await response.json();
-            // Transform API data from snake_case to camelCase
-            const transformedData = transformApiHives(apiData);
-            console.log('Transformed API data:', transformedData);
-            setHives(transformedData);
-            // Save to localStorage for offline persistence
-            localStorage.setItem(STORAGE_KEYS.HIVES_DATA, JSON.stringify(transformedData));
-          } else {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
+        const result = await apiService.getHives();
+        if (result.success && result.data) {
+          console.log('Fetched hives data:', result.data);
+          setHives(result.data);
+          // Save to localStorage for offline persistence
+          localStorage.setItem(STORAGE_KEYS.HIVES_DATA, JSON.stringify(result.data));
         } else {
-          // Use mock data for localhost
-          await simulateApiDelay(1000); // Simulate 1 second delay
-          setHives(mockColmeiasData);
-          console.log('Using mock data for local development');
+          throw new Error(result.error || 'Failed to fetch hives');
         }
       } catch (err) {
         console.error('Fetch failed:', err);
@@ -103,9 +91,11 @@ function App() {
       }
     };
 
-    fetchData();
+    if (isAuthenticated) {
+      fetchData();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOnline, API_URL]);
+  }, [isOnline, isAuthenticated]);
 
   const handleAddHive = (newHive: {
     code?: number;

@@ -46,6 +46,16 @@ class ApiService {
     Cookies.remove(SESSION_COOKIE_NAME);
   }
 
+  private getBasicAuthHeader(): string | null {
+    const sessionId = this.getSessionId();
+    if (!sessionId) {
+      return null;
+    }
+    // Encode sessionID as Basic Auth (sessionID:empty or sessionID:sessionID)
+    // Using format: sessionID: (sessionID as username, empty password)
+    return `Basic ${btoa(`${sessionId}:`)}`;
+  }
+
   private setupOnlineStatusListener(): void {
     window.addEventListener('online', () => {
       console.log('🌐 Connection restored, processing queued requests...');
@@ -93,7 +103,7 @@ class ApiService {
   }
 
   private async makeRequest<T>(url: string, options: RequestInit): Promise<T> {
-    const sessionId = this.getSessionId();
+    const basicAuth = this.getBasicAuthHeader();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
@@ -104,9 +114,9 @@ class ApiService {
       Object.assign(headers, existingHeaders);
     }
 
-    // Add session ID to headers if it exists
-    if (sessionId) {
-      headers['X-Session-ID'] = sessionId;
+    // Add Basic Auth header with sessionID if available
+    if (basicAuth) {
+      headers['Authorization'] = basicAuth;
     }
 
     const response = await fetch(url, {
@@ -396,7 +406,7 @@ class ApiService {
   // Authentication methods
   async authenticate(email: string, password: string): Promise<{ success: boolean; error?: string }> {
     try {
-      // Create Basic Auth header
+      // Create Basic Auth header with email:password
       const credentials = btoa(`${email}:${password}`);
       const response = await fetch(`${this.baseUrl}/authenticate`, {
         method: 'GET',
@@ -420,7 +430,7 @@ class ApiService {
 
       const data = await response.json();
       
-      // Store session ID in cookie
+      // Store session ID from backend
       if (data.session_id || data.sessionId || data.sessionID) {
         const sessionId = data.session_id || data.sessionId || data.sessionID;
         this.setSessionId(sessionId);

@@ -40,12 +40,12 @@ export const STATUS_CONFIG: Record<HiveStatus, {
 };
 
 // Environment configuration
-export const getApiUrl = (): string | null => {
+export const getApiUrl = (): string => {
   const isLocalhost = window.location.hostname === 'localhost' || 
                      window.location.hostname === '127.0.0.1' ||
                      window.location.hostname === '';
   
-  return isLocalhost ? null : 'https://bombus.onrender.com/colmeias';
+  return isLocalhost ? 'http://localhost:8080/colmeias' : 'https://bombus.onrender.com/colmeias';
 };
 
 export const isLocalEnvironment = (): boolean => {
