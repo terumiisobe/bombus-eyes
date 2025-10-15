@@ -38,6 +38,7 @@ function App() {
         if (storedUser) {
           setCurrentUser(storedUser);
           setIsAuthenticated(true);
+          setCurrentView('dashboard'); // Always start on dashboard
         }
       }
     }, []);
@@ -125,6 +126,7 @@ function App() {
   const handleLogin = (email: string) => {
     setCurrentUser(email);
     setIsAuthenticated(true);
+    setCurrentView('dashboard'); // Always open on dashboard after login
     localStorage.setItem(AUTH_KEY, email);
   };
 
