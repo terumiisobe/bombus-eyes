@@ -18,6 +18,7 @@ class ApiService {
   private isOnline: boolean = navigator.onLine;
   private requestQueue: QueuedRequest[] = [];
   private isProcessingQueue: boolean = false;
+  private onUnauthorizedCallback: (() => void) | null = null;
 
   constructor() {
     this.baseUrl = this.getApiUrl();
@@ -125,6 +126,15 @@ class ApiService {
     });
 
     if (!response.ok) {
+      // Handle unauthorized - clear session and trigger callback only if we had a session
+      if (response.status === 401) {
+        const hadSession = !!this.getSessionId();
+        this.removeSessionId();
+        if (hadSession && this.onUnauthorizedCallback) {
+          this.onUnauthorizedCallback();
+        }
+      }
+
       let errorMessage = '';
       
       try {
@@ -311,6 +321,10 @@ class ApiService {
       }
     } catch (error) {
       const statusCode = error && typeof error === 'object' && 'statusCode' in error && typeof error.statusCode === 'number' ? error.statusCode : undefined;
+      // Don't return error message for 401 - session expired dialog will handle it
+      if (statusCode === 401) {
+        return { success: false };
+      }
       const errorMessage = error instanceof Error ? translateError(error.message, statusCode) : 'Erro desconhecido';
       return { success: false, error: errorMessage };
     }
@@ -327,6 +341,10 @@ class ApiService {
       }
     } catch (error) {
       const statusCode = error && typeof error === 'object' && 'statusCode' in error && typeof error.statusCode === 'number' ? error.statusCode : undefined;
+      // Don't return error message for 401 - session expired dialog will handle it
+      if (statusCode === 401) {
+        return { success: false };
+      }
       const errorMessage = error instanceof Error ? translateError(error.message, statusCode) : 'Erro desconhecido';
       return { success: false, error: errorMessage };
     }
@@ -343,6 +361,10 @@ class ApiService {
       }
     } catch (error) {
       const statusCode = error && typeof error === 'object' && 'statusCode' in error && typeof error.statusCode === 'number' ? error.statusCode : undefined;
+      // Don't return error message for 401 - session expired dialog will handle it
+      if (statusCode === 401) {
+        return { success: false };
+      }
       const errorMessage = error instanceof Error ? translateError(error.message, statusCode) : 'Erro desconhecido';
       return { success: false, error: errorMessage };
     }
@@ -358,6 +380,10 @@ class ApiService {
       return { success: true, data: transformedData };
     } catch (error) {
       const statusCode = error && typeof error === 'object' && 'statusCode' in error && typeof error.statusCode === 'number' ? error.statusCode : undefined;
+      // Don't return error message for 401 - session expired dialog will handle it
+      if (statusCode === 401) {
+        return { success: false };
+      }
       const errorMessage = error instanceof Error ? translateError(error.message, statusCode) : 'Erro desconhecido';
       return { success: false, error: errorMessage };
     }
@@ -451,6 +477,11 @@ class ApiService {
 
   isAuthenticated(): boolean {
     return !!this.getSessionId();
+  }
+
+  // Set callback for handling unauthorized responses
+  setOnUnauthorized(callback: () => void): void {
+    this.onUnauthorizedCallback = callback;
   }
 }
 

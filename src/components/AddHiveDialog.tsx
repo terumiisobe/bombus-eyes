@@ -92,10 +92,11 @@ export function AddHiveDialog({ onAddHive }: AddHiveDialogProps) {
         } else {
           toast.success("Colmeia adicionada! Será sincronizada quando a conexão for restabelecida.");
         }
-      } else {
-        // Error already translated by apiService
+      } else if (result.error) {
+        // Error already translated by apiService - only show if error message exists
         toast.error(`Erro ao adicionar colmeia: ${result.error}`);
       }
+      // If no error message, it's likely a 401 and session expired dialog will handle it
     } catch (error) {
       // Unexpected error
       toast.error("Erro ao adicionar colmeia: erro inesperado, entre em contato com o suporte.");
@@ -280,10 +281,11 @@ export function AddHiveDialog({ onAddHive }: AddHiveDialogProps) {
                     } else {
                       toast.success("Colmeia adicionada! Será sincronizada quando a conexão for restabelecida.");
                     }
-                  } else {
-                    // Error already translated by apiService
+                  } else if (result.error) {
+                    // Error already translated by apiService - only show if error message exists
                     toast.error(`Erro ao adicionar colmeia: ${result.error}`);
                   }
+                  // If no error message, it's likely a 401 and session expired dialog will handle it
                 } catch (error) {
                   // Unexpected error
                   toast.error("Erro ao adicionar colmeia: erro inesperado, entre em contato com o suporte.");
