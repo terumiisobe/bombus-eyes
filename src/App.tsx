@@ -17,6 +17,7 @@ import { Login } from './components/Login';
 import { ForgotPassword } from './components/ForgotPassword';
 import { ResetPassword } from './components/ResetPassword';
 import { UserProfile } from './components/UserProfile';
+import { SessionExpiredDialog } from './components/SessionExpiredDialog';
 
 const AUTH_KEY = 'hive_auth_user';
 
@@ -28,8 +29,17 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [authView, setAuthView] = useState<'login' | 'forgot-password' | 'reset-password'>('login');
+  const [showSessionExpired, setShowSessionExpired] = useState(false);
 
   const isLocalhost = isLocalEnvironment();
+
+  // Set up unauthorized handler
+  useEffect(() => {
+    apiService.setOnUnauthorized(() => {
+      // Show session expired dialog
+      setShowSessionExpired(true);
+    });
+  }, []);
 
   // Check for stored auth on mount
     useEffect(() => {
@@ -155,6 +165,16 @@ function App() {
     toast.success("Você pode fazer login com sua nova senha");
   };
 
+  const handleSessionExpiredContinue = () => {
+    // Clear all auth state and redirect to login
+    setCurrentUser(null);
+    setIsAuthenticated(false);
+    setCurrentView('dashboard');
+    setAuthView('login');
+    localStorage.removeItem(AUTH_KEY);
+    setShowSessionExpired(false);
+  };
+
   // Show authentication screens if not authenticated
   if (!isAuthenticated) {
     return (
@@ -229,6 +249,10 @@ function App() {
         )}
       </div>
       <Toaster />
+      <SessionExpiredDialog 
+        open={showSessionExpired} 
+        onContinue={handleSessionExpiredContinue} 
+      />
     </div>
   );
 }
