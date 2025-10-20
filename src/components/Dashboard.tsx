@@ -1,18 +1,11 @@
-import { Hexagon } from "lucide-react";
-import { AddHiveDialog } from "./AddHiveDialog";
-import { Colmeia, SpeciesInfo, HiveStatus } from "../types";
+import { Colmeia } from "../types";
 import { countHivesByStatus } from "../utils/hiveUtils";
 
 interface DashboardProps {
   hives: Colmeia[];
-  onAddHive: (hive: {
-    code?: number;
-    species: SpeciesInfo;
-    status: HiveStatus;
-  }) => void;
 }
 
-export function Dashboard({ hives, onAddHive }: DashboardProps) {
+export function Dashboard({ hives }: DashboardProps) {
   const readyToHarvestHives = countHivesByStatus(hives, 'PRONTA_PARA_COLHEITA');
   const acceptsMelgueiraHives = countHivesByStatus(hives, 'PRONTO_PARA_MELGUEIRA');
   const developingHives = countHivesByStatus(hives, 'EM_DESENVOLVIMENTO');
@@ -24,16 +17,6 @@ export function Dashboard({ hives, onAddHive }: DashboardProps) {
 
   return (
     <div className="space-y-8">
-      {/* Add Hive Section */}
-      <div className="text-center py-6 bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl border border-amber-200">
-        <Hexagon className="w-16 h-16 text-amber-600 mx-auto mb-3" />
-        <h2 className="mb-2 text-2xl text-amber-900">Adicionar Nova Colmeia</h2>
-        <p className="text-base text-amber-700 mb-4">
-          Registre uma nova colmeia no seu meliponário
-        </p>
-        <AddHiveDialog onAddHive={onAddHive} />
-      </div>
-
       {/* Stats Table */}
       <div>
         <h2 className="mb-6 text-2xl text-amber-900">Estatísticas do Meliponário</h2>

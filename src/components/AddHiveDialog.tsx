@@ -15,10 +15,16 @@ interface AddHiveDialogProps {
     species: SpeciesInfo;
     status: HiveStatus;
   }) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function AddHiveDialog({ onAddHive }: AddHiveDialogProps) {
-  const [open, setOpen] = useState(false);
+export function AddHiveDialog({ onAddHive, open: controlledOpen, onOpenChange }: AddHiveDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  // Use controlled open state if provided, otherwise use internal state
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = onOpenChange || setInternalOpen;
   const [code, setCode] = useState<number | undefined>(undefined);
   const [species, setSpecies] = useState<SpeciesInfo>({
     ID: 0,
@@ -109,10 +115,6 @@ export function AddHiveDialog({ onAddHive }: AddHiveDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-amber-700 hover:bg-amber-800 text-white flex items-center gap-2 mx-auto">
-          <Plus className="w-4 h-4" />
-          Adicionar Colmeia
-        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
