@@ -4,6 +4,7 @@ import { Navigation } from "./components/Navigation";
 import { Hexagon } from 'lucide-react';
 import { Dashboard } from "./components/Dashboard";
 import { SearchBar } from "./components/SearchBar";
+import { OperationsView } from "./components/OperationsView";
 import { Badge } from "./components/ui/badge";
 import { HiveList } from "./components/HiveList";
 import { OfflineStatus } from "./components/OfflineStatus";
@@ -25,7 +26,7 @@ function App() {
   const [hives, setHives] = useState<Colmeia[]>([]);
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
   const [searchCode, setSearchCode] = useState<string>('');
-  const [currentView, setCurrentView] = useState<'dashboard' | 'listing' | 'profile'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'listing' | 'profile' | 'operations'>('dashboard');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [authView, setAuthView] = useState<'login' | 'forgot-password' | 'reset-password'>('login');
@@ -222,7 +223,9 @@ function App() {
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {currentView === 'dashboard' ? (
-          <Dashboard hives={hives} onAddHive={handleAddHive} />
+          <Dashboard hives={hives} />
+        ) : currentView === 'operations' ? (
+          <OperationsView onAddHive={handleAddHive} />
         ) : currentView === 'listing' ? (
           <div className="space-y-6">
             {/* Search and Filters */}

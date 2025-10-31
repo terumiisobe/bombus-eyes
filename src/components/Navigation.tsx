@@ -1,9 +1,9 @@
-import { BarChart3, List, User } from "lucide-react";
+import { BarChart3, List, User, ClipboardList } from "lucide-react";
 import { Button } from "./ui/button";
 
 interface NavigationProps {
-  currentView: 'dashboard' | 'listing' | 'profile';
-  onViewChange: (view: 'dashboard' | 'listing' | 'profile') => void;
+  currentView: 'dashboard' | 'listing' | 'profile' | 'operations';
+  onViewChange: (view: 'dashboard' | 'listing' | 'profile' | 'operations') => void;
 }
 
 export function Navigation({ currentView, onViewChange }: NavigationProps) {
@@ -20,6 +20,17 @@ export function Navigation({ currentView, onViewChange }: NavigationProps) {
           }`}
         >
           <BarChart3 className="w-5 h-5" />
+        </Button>
+        <Button
+          onClick={() => onViewChange('operations')}
+          variant={currentView === 'operations' ? 'default' : 'outline'}
+          className={`w-12 h-12 rounded-full p-0 ${
+            currentView === 'operations' 
+              ? 'bg-amber-700 hover:bg-amber-800 text-white' 
+              : 'border-amber-700 text-amber-700 hover:bg-amber-50'
+          }`}
+        >
+          <ClipboardList className="w-5 h-5" />
         </Button>
         <Button
           onClick={() => onViewChange('listing')}
