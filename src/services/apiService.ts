@@ -309,6 +309,28 @@ class ApiService {
   }
 
   // Public API methods
+  async createMultiplicationOperation(data: {
+    newborn_colmeia_code: number | string;
+    newborn_colmeia_species: { id: number };
+    executed_at: string;
+    method: string;
+    resources: Array<{ colmeia_doner_id: number | string; resource_type: string }>;
+  }): Promise<{ success: boolean; data?: any; error?: string }> {
+    try {
+      const response = await this.makeRequest<any>(`${this.baseUrl}/operation/multiplication`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      return { success: true, data: response };
+    } catch (error) {
+      const statusCode = error && typeof error === 'object' && 'statusCode' in error && typeof (error as any).statusCode === 'number' ? (error as any).statusCode : undefined;
+      if (statusCode === 401) {
+        return { success: false };
+      }
+      const errorMessage = error instanceof Error ? translateError(error.message, statusCode) : 'Erro desconhecido';
+      return { success: false, error: errorMessage };
+    }
+  }
   async createHive(hiveData: CreateHiveRequest): Promise<{ success: boolean; id?: string; error?: string }> {
     try {
       if (this.isOnline) {
