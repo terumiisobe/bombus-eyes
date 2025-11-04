@@ -8,6 +8,7 @@ import { Plus, Hexagon, Hash, Activity, Wifi, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 import { SPECIES_LIST, SpeciesInfo, STATUS_LIST, HiveStatus } from "../types";
 import { apiService } from "../services/apiService";
+import { getCurrentBrazilTime } from "../utils/dateUtils";
 
 interface AddHiveDialogProps {
   onAddHive: (hive: {
@@ -68,7 +69,8 @@ export function AddHiveDialog({ onAddHive, open: controlledOpen, onOpenChange }:
           CommonName: species.CommonName,
           ScientificName: species.ScientificName
         },
-        status
+        status,
+        starting_date: getCurrentBrazilTime()
       });
 
       if (result.success) {
@@ -254,7 +256,8 @@ export function AddHiveDialog({ onAddHive, open: controlledOpen, onOpenChange }:
                       CommonName: species.CommonName,
                       ScientificName: species.ScientificName
                     },
-                    status
+                    status,
+                    starting_date: getCurrentBrazilTime()
                   });
 
                   if (result.success) {

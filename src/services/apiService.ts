@@ -9,6 +9,7 @@ export interface CreateHiveRequest {
   code?: number;
   species: SpeciesInfo;
   status: HiveStatus;
+  starting_date?: string;
 }
 
 const SESSION_COOKIE_NAME = 'bombus_session_id';
