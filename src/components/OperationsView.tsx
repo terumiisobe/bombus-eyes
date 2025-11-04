@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { SpeciesInfo, HiveStatus } from "../types";
 import { MultiplicationDialog } from "./MultiplicationDialog";
 import { apiService } from "../services/apiService";
+import { toBrazilIso } from "../utils/dateUtils";
 
 interface OperationsViewProps {
   onAddHive: (hive: {
@@ -115,29 +116,6 @@ export function OperationsView({ onAddHive }: OperationsViewProps) {
           const newborn_colmeia_code = Number.isFinite(codeNum) ? codeNum : codeRaw;
 
           // Format executed_at in Brazil time (America/Sao_Paulo) with offset
-          const toBrazilIso = (localDateTime: string): string => {
-            const d = new Date(localDateTime);
-            // Get parts in Sao Paulo TZ
-            const fmt = new Intl.DateTimeFormat('en-CA', {
-              timeZone: 'America/Sao_Paulo',
-              year: 'numeric', month: '2-digit', day: '2-digit',
-              hour: '2-digit', minute: '2-digit', second: '2-digit',
-              hour12: false,
-            });
-            const parts = fmt.formatToParts(d).reduce<Record<string, string>>((acc, p) => { acc[p.type] = p.value; return acc; }, {} as any);
-            const yyyy = parts.year, MM = parts.month, dd = parts.day;
-            const HH = parts.hour, mm = parts.minute, ss = parts.second;
-            // Determine offset for Sao Paulo at this time
-            const tzDate = new Date(`${yyyy}-${MM}-${dd}T${HH}:${mm}:${ss}`);
-            const spNow = new Date(tzDate.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
-            const utcNow = new Date(tzDate.toLocaleString('en-US', { timeZone: 'UTC' }));
-            const diffMin = Math.round((spNow.getTime() - utcNow.getTime()) / 60000);
-            const sign = diffMin >= 0 ? '+' : '-';
-            const abs = Math.abs(diffMin);
-            const offH = String(Math.floor(abs / 60)).padStart(2, '0');
-            const offM = String(abs % 60).padStart(2, '0');
-            return `${yyyy}-${MM}-${dd}T${HH}:${mm}:${ss}${sign}${offH}:${offM}`;
-          };
           const executed_at = toBrazilIso(formData.dateTime);
 
           let resources: Array<{ colmeia_doner_id: number | string; resource_type: string }> = [];
