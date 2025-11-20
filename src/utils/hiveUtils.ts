@@ -11,7 +11,7 @@ export const transformApiHive = (apiHive: any): Colmeia | null => {
       return null;
     }
 
-    return {
+    const transformed: Colmeia = {
       ID: apiHive.id || apiHive.ID,
       Code: apiHive.code || apiHive.Code,
       Species: {
@@ -22,6 +22,19 @@ export const transformApiHive = (apiHive: any): Colmeia | null => {
       StartingDate: apiHive.starting_date || apiHive.StartingDate,
       Status: apiHive.status || apiHive.Status
     };
+
+    // Handle meliponary attribute
+    if (apiHive.meliponary) {
+      transformed.Meliponary = {
+        id: apiHive.meliponary.id || apiHive.meliponary_id
+      };
+    } else if (apiHive.meliponary_id) {
+      transformed.Meliponary = {
+        id: apiHive.meliponary_id
+      };
+    }
+
+    return transformed;
   } catch (error) {
     console.error('Error transforming API hive data:', error, apiHive);
     return null;

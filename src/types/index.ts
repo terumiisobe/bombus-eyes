@@ -6,6 +6,7 @@ export interface Colmeia {
   Species: SpeciesInfo;
   StartingDate: string;
   Status: string;
+  Meliponary?: { id: number };
 }
 
 export interface SpeciesInfo {
