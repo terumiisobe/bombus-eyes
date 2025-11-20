@@ -10,9 +10,11 @@ export interface CreateHiveRequest {
   species: SpeciesInfo;
   status: HiveStatus;
   starting_date?: string;
+  meliponary: { id: number };
 }
 
 const SESSION_COOKIE_NAME = 'bombus_session_id';
+const MELIPONARY_ID_KEY = 'bombus_meliponary_id';
 
 class ApiService {
   private baseUrl: string;
@@ -46,6 +48,30 @@ class ApiService {
 
   private removeSessionId(): void {
     Cookies.remove(SESSION_COOKIE_NAME);
+  }
+
+  private getMeliponaryId(): number | null {
+    // TODO: Remove this mock implementation once meliponary ID is retrieved via authentication
+    // For now, return hardcoded value of 1
+    return 1;
+    
+    // Future implementation (keep for when authentication provides meliponary ID):
+    // const stored = localStorage.getItem(MELIPONARY_ID_KEY);
+    // if (stored) {
+    //   const id = Number(stored);
+    //   if (Number.isFinite(id)) {
+    //     return id;
+    //   }
+    // }
+    // return null;
+  }
+
+  private setMeliponaryId(id: number): void {
+    localStorage.setItem(MELIPONARY_ID_KEY, String(id));
+  }
+
+  private removeMeliponaryId(): void {
+    localStorage.removeItem(MELIPONARY_ID_KEY);
   }
 
   private getBasicAuthHeader(): string | null {
@@ -318,9 +344,19 @@ class ApiService {
     resources: Array<{ colmeia_doner_id: number | string; resource_type: string }>;
   }): Promise<{ success: boolean; data?: any; error?: string }> {
     try {
+      const meliponaryId = this.getMeliponaryId();
+      if (!meliponaryId) {
+        return { success: false, error: 'Meliponary ID não encontrado' };
+      }
+
+      const payload = {
+        ...data,
+        meliponary: { id: meliponaryId }
+      };
+
       const response = await this.makeRequest<any>(`${this.baseUrl}/operation/multiplication`, {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
       return { success: true, data: response };
     } catch (error) {
@@ -332,13 +368,23 @@ class ApiService {
       return { success: false, error: errorMessage };
     }
   }
-  async createHive(hiveData: CreateHiveRequest): Promise<{ success: boolean; id?: string; error?: string }> {
+  async createHive(hiveData: Omit<CreateHiveRequest, 'meliponary'>): Promise<{ success: boolean; id?: string; error?: string }> {
     try {
+      const meliponaryId = this.getMeliponaryId();
+      if (!meliponaryId) {
+        return { success: false, error: 'Meliponary ID não encontrado' };
+      }
+
+      const requestData: CreateHiveRequest = {
+        ...hiveData,
+        meliponary: { id: meliponaryId }
+      };
+
       if (this.isOnline) {
-        const response = await this.createHiveRequest(hiveData);
+        const response = await this.createHiveRequest(requestData);
         return { success: true, id: response.ID };
       } else {
-        const requestId = this.queueRequest('CREATE_HIVE', hiveData);
+        const requestId = this.queueRequest('CREATE_HIVE', requestData);
         toast.info('Colmeia adicionada offline. Será sincronizada quando a conexão for restabelecida.');
         return { success: true, id: requestId };
       }
@@ -483,6 +529,15 @@ class ApiService {
       if (data.session_id || data.sessionId || data.sessionID) {
         const sessionId = data.session_id || data.sessionId || data.sessionID;
         this.setSessionId(sessionId);
+        
+        // Store meliponary ID if provided in auth response
+        if (data.meliponary?.id || data.meliponary_id) {
+          const meliponaryId = data.meliponary?.id || data.meliponary_id;
+          if (Number.isFinite(meliponaryId)) {
+            this.setMeliponaryId(Number(meliponaryId));
+          }
+        }
+        
         return { success: true };
       } else {
         throw new Error('No session ID received from server');
@@ -496,6 +551,7 @@ class ApiService {
 
   logout(): void {
     this.removeSessionId();
+    this.removeMeliponaryId();
   }
 
   isAuthenticated(): boolean {
@@ -505,6 +561,16 @@ class ApiService {
   // Set callback for handling unauthorized responses
   setOnUnauthorized(callback: () => void): void {
     this.onUnauthorizedCallback = callback;
+  }
+
+  // Method to set meliponary ID (can be called if not provided in auth response)
+  setMeliponaryIdManually(id: number): void {
+    this.setMeliponaryId(id);
+  }
+
+  // Method to get current meliponary ID
+  getCurrentMeliponaryId(): number | null {
+    return this.getMeliponaryId();
   }
 }
 
