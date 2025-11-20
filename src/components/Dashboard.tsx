@@ -1,11 +1,24 @@
-import { Colmeia } from "../types";
+import { useEffect, useState } from "react";
+import { Colmeia, FocusedActivity } from "../types";
 import { countHivesByStatus } from "../utils/hiveUtils";
+import { Hexagon, Search, Bean } from "lucide-react";
+import { Badge } from "./ui/badge";
+import { apiService } from "../services/apiService";
 
 interface DashboardProps {
   hives: Colmeia[];
 }
 
+interface DisplayActivity {
+  code: string;
+  species: string;
+  activity: string;
+  motive: string;
+}
+
 export function Dashboard({ hives }: DashboardProps) {
+  const [activitiesInFocus, setActivitiesInFocus] = useState<DisplayActivity[]>([]);
+  const [isLoadingActivities, setIsLoadingActivities] = useState(true);
   const readyToHarvestHives = countHivesByStatus(hives, 'PRONTA_PARA_COLHEITA');
   const acceptsMelgueiraHives = countHivesByStatus(hives, 'PRONTO_PARA_MELGUEIRA');
   const developingHives = countHivesByStatus(hives, 'EM_DESENVOLVIMENTO');
@@ -15,11 +28,129 @@ export function Dashboard({ hives }: DashboardProps) {
   const movedHives = countHivesByStatus(hives, 'MOVIDA');
   const unknownHives = countHivesByStatus(hives, 'DESCONHECIDO');
 
+  // Fetch focused activities from API
+  useEffect(() => {
+    const fetchFocusedActivities = async () => {
+      setIsLoadingActivities(true);
+      try {
+        const result = await apiService.getFocusedActivities();
+        if (result.success && result.data) {
+          const displayActivities: DisplayActivity[] = result.data.map((item: FocusedActivity) => {
+            // Map action enum to display text
+            const actionMap: Record<string, string> = {
+              'alimentacao': 'alimentação',
+              'inspecao': 'inspeção',
+            };
+            
+            // Map motive enum to display text
+            const motiveMap: Record<string, string> = {
+              'multiplicacao_recente': 'multiplicação recente',
+              'baixa_atividade': 'baixa atividade',
+            };
+            
+            return {
+              code: item.colmeia.Code ? String(item.colmeia.Code) : 'N/A',
+              species: item.colmeia.Species?.CommonName || 'Desconhecida',
+              activity: actionMap[item.action] || item.action,
+              motive: motiveMap[item.motive] || item.motive,
+            };
+          });
+          setActivitiesInFocus(displayActivities);
+        } else {
+          setActivitiesInFocus([]);
+        }
+      } catch (error) {
+        console.error('Error fetching focused activities:', error);
+        setActivitiesInFocus([]);
+      } finally {
+        setIsLoadingActivities(false);
+      }
+    };
+
+    fetchFocusedActivities();
+  }, []);
+
+    const getActivityColor = (activity: string) => {
+      switch (activity) {
+        case 'alimentação':
+          return 'bg-yellow-100 text-yellow-700';
+        case 'inspeção':
+          return 'bg-red-100 text-red-700';
+        default:
+          return 'bg-gray-100 text-gray-700';
+      }
+    };
+
+    const getMotiveColor = (motive: string) => {
+      switch (motive.toLowerCase()) {
+        case 'multiplicação recente':
+        case 'multiplicacao_recente':
+          return 'bg-yellow-100 text-yellow-700';
+        case 'baixa atividade':
+        case 'baixa_atividade':
+          return 'bg-red-100 text-red-700';
+        default:
+          return 'bg-gray-100 text-gray-700';
+      }
+    };
+  
+    const getActivityIcon = (activity: string) => {
+      switch (activity) {
+        case 'alimentação':
+          return <Bean className="w-5 h-5 text-amber-600" />;
+        case 'inspeção':
+          return <Search className="w-5 h-5 text-amber-600" />;
+        default:
+          return <Hexagon className="w-5 h-5 text-amber-600" />;
+      }
+    };
+
   return (
     <div className="space-y-8">
+
+      {/* Activities in Focus - New Section */}
+      <div>
+        <h2 className="mb-6 text-amber-900">Atividades em foco</h2>
+        <div className="bg-card rounded-xl border border-amber-200 p-6">
+          {isLoadingActivities ? (
+            <div className="text-center py-8 text-amber-600">
+              Carregando...
+            </div>
+          ) : activitiesInFocus.length === 0 ? (
+            <div className="text-center py-8 text-amber-600">
+              Nenhuma atividade requer atenção especial
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {activitiesInFocus.map((item) => (
+                <div 
+                  key={item.code} 
+                  className="flex items-start gap-4 p-4 bg-amber-50 rounded-lg border border-amber-100"
+                >
+                  <div className="p-2 rounded-lg bg-amber-100">
+                    {getActivityIcon(item.activity)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-amber-900 mb-2 font-bold uppercase">{item.activity}</div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-amber-900">{item.code}</span>
+                      <span className="text-amber-400">•</span>
+                      <span className="text-amber-700">{item.species}</span>
+                    </div>
+                    <Badge variant="outline" className={`${getMotiveColor(item.motive)} border-0`}>
+                      {item.motive}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Stats Table */}
       <div>
-        <h2 className="mb-6 text-2xl text-amber-900">Estatísticas do Meliponário</h2>
+        <h2 className="mb-6 text-amber-900">Estatísticas do Meliponário</h2>
         <div className="bg-card rounded-xl border border-amber-200 overflow-hidden">
           <table className="w-full">
             <thead className="bg-amber-50">
@@ -29,7 +160,7 @@ export function Dashboard({ hives }: DashboardProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-amber-100">
-              <tr className="hover:bg-green-50">
+              <tr>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-green-500 rounded-full"></div>
@@ -38,7 +169,7 @@ export function Dashboard({ hives }: DashboardProps) {
                 </td>
                 <td className="px-4 py-3 text-center text-base text-green-700 font-semibold">{readyToHarvestHives}</td>
               </tr>
-              <tr className="hover:bg-green-50">
+              <tr>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-green-500 rounded-full"></div>
@@ -47,7 +178,7 @@ export function Dashboard({ hives }: DashboardProps) {
                 </td>
                 <td className="px-4 py-3 text-center text-base text-green-700 font-semibold">{acceptsMelgueiraHives}</td>
               </tr>
-              <tr className="hover:bg-yellow-50">
+              <tr>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
@@ -56,7 +187,7 @@ export function Dashboard({ hives }: DashboardProps) {
                 </td>
                 <td className="px-4 py-3 text-center text-base text-yellow-700 font-semibold">{developingHives}</td>
               </tr>
-              <tr className="hover:bg-yellow-50">
+              <tr>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
@@ -65,7 +196,7 @@ export function Dashboard({ hives }: DashboardProps) {
                 </td>
                 <td className="px-4 py-3 text-center text-base text-yellow-700 font-semibold">{inducedHives}</td>
               </tr>
-              <tr className="hover:bg-yellow-50">
+              <tr>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
@@ -74,7 +205,7 @@ export function Dashboard({ hives }: DashboardProps) {
                 </td>
                 <td className="px-4 py-3 text-center text-base text-yellow-700 font-semibold">{petBottleHives}</td>
               </tr>
-              <tr className="hover:bg-red-50">
+              <tr>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-red-500 rounded-full"></div>
@@ -83,7 +214,7 @@ export function Dashboard({ hives }: DashboardProps) {
                 </td>
                 <td className="px-4 py-3 text-center text-base text-red-700 font-semibold">{emptyHives}</td>
               </tr>
-              <tr className="hover:bg-gray-50">
+              <tr>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
@@ -92,7 +223,7 @@ export function Dashboard({ hives }: DashboardProps) {
                 </td>
                 <td className="px-4 py-3 text-center text-base text-gray-700 font-semibold">{movedHives}</td>
               </tr>
-              <tr className="hover:bg-gray-50">
+              <tr>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
