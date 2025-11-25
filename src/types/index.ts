@@ -43,6 +43,13 @@ export interface Status {
   label: string;
 }
 
+// Focused Activity data
+export interface FocusedActivity {
+  colmeia: Colmeia;
+  action: 'alimentacao' | 'inspecao';
+  motive: 'multiplicacao_recente' | 'baixa_atividade';
+}
+
 //TODO: get list from backend API
 export const SPECIES_LIST: Species[] = [
   {

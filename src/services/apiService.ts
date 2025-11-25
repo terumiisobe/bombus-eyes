@@ -1,4 +1,4 @@
-import { Colmeia, SpeciesInfo, HiveStatus, QueuedRequest } from '../types';
+import { Colmeia, SpeciesInfo, HiveStatus, QueuedRequest, FocusedActivity } from '../types';
 import { toast } from 'sonner';
 import { STORAGE_KEYS } from '../utils/constants';
 import { translateError, translateHttpStatus } from '../utils/errorTranslations';
@@ -446,6 +446,37 @@ class ApiService {
       });
       // Transform snake_case API response to camelCase
       const transformedData = transformApiHives(response);
+      return { success: true, data: transformedData };
+    } catch (error) {
+      const statusCode = error && typeof error === 'object' && 'statusCode' in error && typeof error.statusCode === 'number' ? error.statusCode : undefined;
+      // Don't return error message for 401 - session expired dialog will handle it
+      if (statusCode === 401) {
+        return { success: false };
+      }
+      const errorMessage = error instanceof Error ? translateError(error.message, statusCode) : 'Erro desconhecido';
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  async getFocusedActivities(): Promise<{ success: boolean; data?: FocusedActivity[]; error?: string }> {
+    try {
+      const response = await this.makeRequest<any[]>(`${this.baseUrl}/activity/focused`, {
+        method: 'GET',
+      });
+      // Transform snake_case API response to camelCase for colmeia
+      const transformedData = response
+        .map((item: any) => {
+          const transformedColmeia = transformApiHive(item.colmeia);
+          if (!transformedColmeia) {
+            return null;
+          }
+          return {
+            colmeia: transformedColmeia,
+            action: item.action,
+            motive: item.motive,
+          };
+        })
+        .filter((item): item is FocusedActivity => item !== null);
       return { success: true, data: transformedData };
     } catch (error) {
       const statusCode = error && typeof error === 'object' && 'statusCode' in error && typeof error.statusCode === 'number' ? error.statusCode : undefined;
