@@ -12,7 +12,7 @@ interface DashboardProps {
 interface DisplayActivity {
   code: string;
   species: string;
-  activity: string;
+  action: string;
   motive: string;
 }
 
@@ -38,21 +38,29 @@ export function Dashboard({ hives }: DashboardProps) {
           const displayActivities: DisplayActivity[] = result.data.map((item: FocusedActivity) => {
             // Map action enum to display text
             const actionMap: Record<string, string> = {
-              'alimentacao': 'alimentação',
-              'inspecao': 'inspeção',
+              'ALIMENTACAO': 'alimentação',
+              'INSPECAO': 'inspeção',
             };
             
             // Map motive enum to display text
             const motiveMap: Record<string, string> = {
-              'multiplicacao_recente': 'multiplicação recente',
-              'baixa_atividade': 'baixa atividade',
+              'MULTIPLICATION': 'multiplicação recente',
+              'BAIXA_ATIVIDADE': 'baixa atividade',
+              'ATAQUE_ABELHA_LIMAO': 'ataque abelha limão',
             };
+            
+            // Trim and normalize the values from API
+            const actionValue = String(item.action || '').trim();
+            const motiveValue = String(item.motive || '').trim();
+            
+            const mappedAction = actionMap[actionValue] || 'Atividade desconhecida';
+            const mappedMotive = motiveMap[motiveValue] || 'Motivo desconhecido';
             
             return {
               code: item.colmeia.Code ? String(item.colmeia.Code) : 'N/A',
               species: item.colmeia.Species?.CommonName || 'Desconhecida',
-              activity: actionMap[item.action] || item.action,
-              motive: motiveMap[item.motive] || item.motive,
+              action: mappedAction,
+              motive: mappedMotive,
             };
           });
           setActivitiesInFocus(displayActivities);
@@ -70,32 +78,21 @@ export function Dashboard({ hives }: DashboardProps) {
     fetchFocusedActivities();
   }, []);
 
-    const getActivityColor = (activity: string) => {
-      switch (activity) {
-        case 'alimentação':
-          return 'bg-yellow-100 text-yellow-700';
-        case 'inspeção':
-          return 'bg-red-100 text-red-700';
-        default:
-          return 'bg-gray-100 text-gray-700';
-      }
-    };
-
     const getMotiveColor = (motive: string) => {
       switch (motive.toLowerCase()) {
         case 'multiplicação recente':
-        case 'multiplicacao_recente':
           return 'bg-yellow-100 text-yellow-700';
         case 'baixa atividade':
-        case 'baixa_atividade':
+          return 'bg-yellow-100 text-yellow-700';
+        case 'ataque abelha limão':
           return 'bg-red-100 text-red-700';
         default:
           return 'bg-gray-100 text-gray-700';
       }
     };
   
-    const getActivityIcon = (activity: string) => {
-      switch (activity) {
+    const getActivityIcon = (action: string) => {
+      switch (action) {
         case 'alimentação':
           return <Bean className="w-5 h-5 text-amber-600" />;
         case 'inspeção':
@@ -128,12 +125,12 @@ export function Dashboard({ hives }: DashboardProps) {
                   className="flex items-start gap-4 p-4 bg-amber-50 rounded-lg border border-amber-100"
                 >
                   <div className="p-2 rounded-lg bg-amber-100">
-                    {getActivityIcon(item.activity)}
+                    {getActivityIcon(item.action)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-amber-900 mb-2 font-bold uppercase">{item.activity}</div>
+                    <div className="text-amber-900 mb-2 font-bold uppercase">{item.action}</div>
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-amber-900">{item.code}</span>
+                      <span className="text-amber-900">Código {item.code}</span>
                       <span className="text-amber-400">•</span>
                       <span className="text-amber-700">{item.species}</span>
                     </div>
