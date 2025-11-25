@@ -44,7 +44,7 @@ export function Dashboard({ hives }: DashboardProps) {
             
             // Map motive enum to display text
             const motiveMap: Record<string, string> = {
-              'MULTIPLICATION': 'multiplicação recente',
+              'MULTIPLICACAO': 'multiplicação recente',
               'BAIXA_ATIVIDADE': 'baixa atividade',
               'ATAQUE_ABELHA_LIMAO': 'ataque abelha limão',
             };
