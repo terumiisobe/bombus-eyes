@@ -460,7 +460,7 @@ class ApiService {
 
   async getFocusedActivities(): Promise<{ success: boolean; data?: FocusedActivity[]; error?: string }> {
     try {
-      const response = await this.makeRequest<any[]>(`${this.baseUrl}/activities/focused`, {
+      const response = await this.makeRequest<any[]>(`${this.baseUrl}/activity/focused`, {
         method: 'GET',
       });
       // Transform snake_case API response to camelCase for colmeia
