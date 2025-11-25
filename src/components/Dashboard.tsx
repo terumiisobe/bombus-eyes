@@ -4,6 +4,7 @@ import { countHivesByStatus } from "../utils/hiveUtils";
 import { Hexagon, Search, Bean } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { apiService } from "../services/apiService";
+import { Separator } from "./ui/separator";
 
 interface DashboardProps {
   hives: Colmeia[];
@@ -16,8 +17,20 @@ interface DisplayActivity {
   motive: string;
 }
 
+interface ActivityHistoryDay {
+  date: string;
+  dayOfWeek: string;
+  activities: Array<{
+    id: string;
+    code: string;
+    species: string;
+    operation: string;
+  }>;
+}
+
 export function Dashboard({ hives }: DashboardProps) {
   const [activitiesInFocus, setActivitiesInFocus] = useState<DisplayActivity[]>([]);
+  const [activityHistory, setActivityHistory] = useState<ActivityHistoryDay[]>([]);
   const [isLoadingActivities, setIsLoadingActivities] = useState(true);
   const readyToHarvestHives = countHivesByStatus(hives, 'PRONTA_PARA_COLHEITA');
   const acceptsMelgueiraHives = countHivesByStatus(hives, 'PRONTO_PARA_MELGUEIRA');
@@ -27,6 +40,23 @@ export function Dashboard({ hives }: DashboardProps) {
   const emptyHives = countHivesByStatus(hives, 'VAZIA');
   const movedHives = countHivesByStatus(hives, 'MOVIDA');
   const unknownHives = countHivesByStatus(hives, 'DESCONHECIDO');
+
+  // Format date to Portuguese format
+  const formatDate = (dateString: string): { date: string; dayOfWeek: string } => {
+    const date = new Date(dateString);
+    const daysOfWeek = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
+    const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    const dayOfWeek = daysOfWeek[date.getDay()];
+    
+    return {
+      date: `${day} de ${month} de ${year}`,
+      dayOfWeek: dayOfWeek,
+    };
+  };
 
   // Fetch focused activities from API
   useEffect(() => {
@@ -64,12 +94,78 @@ export function Dashboard({ hives }: DashboardProps) {
             };
           });
           setActivitiesInFocus(displayActivities);
+
+          // Process activity history from the same data
+          interface HistoryDayData {
+            dateKey: string;
+            formattedDate: { date: string; dayOfWeek: string };
+            activities: Array<{ id: string; code: string; species: string; operation: string }>;
+          }
+          
+          const historyMap = new Map<string, HistoryDayData>();
+          
+          result.data.forEach((item: FocusedActivity) => {
+            if (!item.date) return;
+            
+            const formattedDate = formatDate(item.date);
+            const dateKey = item.date.split('T')[0]; // Use date as key for grouping
+            
+            if (!historyMap.has(dateKey)) {
+              historyMap.set(dateKey, {
+                dateKey,
+                formattedDate,
+                activities: [],
+              });
+            }
+            
+            const day = historyMap.get(dateKey)!;
+            const code = item.colmeia.Code ? String(item.colmeia.Code) : 'N/A';
+            const species = item.colmeia.Species?.CommonName || 'Desconhecida';
+            
+            // Map motive to operation text
+            let operation = '';
+            if (item.motive === 'MULTIPLICACAO') {
+              operation = 'Multiplicação';
+            } else {
+              // Map action to operation
+              const actionMap: Record<string, string> = {
+                'ALIMENTACAO': 'alimentação',
+                'INSPECAO': 'inspeção',
+              };
+              const actionValue = String(item.action || '').trim();
+              operation = actionMap[actionValue] || 'atividade';
+            }
+            
+            day.activities.push({
+              id: `${dateKey}-${code}-${day.activities.length}`,
+              code,
+              species,
+              operation,
+            });
+          });
+          
+          // Convert map to array and sort by date (newest first)
+          const historyArray = Array.from(historyMap.values())
+            .map(day => ({
+              date: day.formattedDate.date,
+              dayOfWeek: day.formattedDate.dayOfWeek,
+              activities: day.activities,
+              dateKey: day.dateKey, // Keep for sorting
+            }))
+            .sort((a, b) => {
+              return new Date(b.dateKey).getTime() - new Date(a.dateKey).getTime();
+            })
+            .map(({ dateKey, ...rest }) => rest); // Remove dateKey from final result
+          
+          setActivityHistory(historyArray);
         } else {
           setActivitiesInFocus([]);
+          setActivityHistory([]);
         }
       } catch (error) {
         console.error('Error fetching focused activities:', error);
         setActivitiesInFocus([]);
+        setActivityHistory([]);
       } finally {
         setIsLoadingActivities(false);
       }
@@ -102,46 +198,90 @@ export function Dashboard({ hives }: DashboardProps) {
       }
     };
 
+  
   return (
     <div className="space-y-8">
 
-      {/* Activities in Focus - New Section */}
-      <div>
-        <h2 className="mb-6 text-amber-900">Atividades em foco</h2>
-        <div className="bg-card rounded-xl border border-amber-200 p-6">
-          {isLoadingActivities ? (
-            <div className="text-center py-8 text-amber-600">
-              Carregando...
-            </div>
-          ) : activitiesInFocus.length === 0 ? (
-            <div className="text-center py-8 text-amber-600">
-              Nenhuma atividade requer atenção especial
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {activitiesInFocus.map((item) => (
-                <div 
-                  key={item.code} 
-                  className="flex items-start gap-4 p-4 bg-amber-50 rounded-lg border border-amber-100"
-                >
-                  <div className="p-2 rounded-lg bg-amber-100">
-                    {getActivityIcon(item.action)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-amber-900 mb-2 font-bold uppercase">{item.action}</div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-amber-900">Código {item.code}</span>
-                      <span className="text-amber-400">•</span>
-                      <span className="text-amber-700">{item.species}</span>
+      {/* Activities in Focus and Activity History - Side by Side */}
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Activities in Focus - New Section */}
+        <div className="flex-1">
+          <h2 className="mb-6 text-amber-900">Atividades em foco</h2>
+          <div className="bg-card rounded-xl border border-amber-200 p-6">
+            {isLoadingActivities ? (
+              <div className="text-center py-8 text-amber-600">
+                Carregando...
+              </div>
+            ) : activitiesInFocus.length === 0 ? (
+              <div className="text-center py-8 text-amber-600">
+                Nenhuma atividade requer atenção especial
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {activitiesInFocus.map((item) => (
+                  <div 
+                    key={item.code} 
+                    className="flex items-start gap-4 p-4 bg-amber-50 rounded-lg border border-amber-100"
+                  >
+                    <div className="p-2 rounded-lg bg-amber-100">
+                      {getActivityIcon(item.action)}
                     </div>
-                    <Badge variant="outline" className={`${getMotiveColor(item.motive)} border-0`}>
-                      {item.motive}
-                    </Badge>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-amber-900 mb-2 font-bold uppercase">{item.action}</div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-amber-900">Código {item.code}</span>
+                        <span className="text-amber-400">•</span>
+                        <span className="text-amber-700">{item.species}</span>
+                      </div>
+                      <Badge variant="outline" className={`${getMotiveColor(item.motive)} border-0`}>
+                        {item.motive}
+                      </Badge>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Activity History */}
+        <div className="flex-1">
+          <h2 className="mb-6 text-amber-900">Histórico de atividades</h2>
+          <div className="bg-card rounded-xl border border-amber-200 p-6">
+            {activityHistory.length === 0 ? (
+              <div className="text-center py-8 text-amber-600">
+                Nenhuma atividade registrada
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {activityHistory.map((day, index) => (
+                  <div key={index}>
+                    <div className="bg-amber-100 px-3 py-2 rounded-lg mb-2">
+                      <span className="text-amber-900">{day.date}</span>
+                      <span className="text-amber-700 ml-2">• {day.dayOfWeek}</span>
+                    </div>
+                    <div className="pl-2">
+                      {day.activities.map((activity, actIndex) => (
+                        <div key={activity.id}>
+                          <div className="py-1.5 px-2 hover:bg-amber-50 rounded transition-colors">
+                            <span className="text-amber-900 text-sm capitalize">
+                              {activity.operation} de {activity.species} (#{activity.code})
+                            </span>
+                          </div>
+                          {actIndex < day.activities.length - 1 && (
+                            <Separator className="bg-amber-100" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {index < activityHistory.length - 1 && (
+                      <Separator className="mt-3 bg-amber-100" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

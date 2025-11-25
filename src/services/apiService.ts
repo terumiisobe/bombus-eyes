@@ -464,7 +464,7 @@ class ApiService {
         method: 'GET',
       });
       // Transform snake_case API response to camelCase for colmeia
-      const transformedData = response
+      const transformedData: FocusedActivity[] = response
         .map((item: any) => {
           const transformedColmeia = transformApiHive(item.colmeia);
           if (!transformedColmeia) {
@@ -474,7 +474,8 @@ class ApiService {
             colmeia: transformedColmeia,
             action: item.action,
             motive: item.motive,
-          };
+            date: item.date,
+          } as FocusedActivity;
         })
         .filter((item): item is FocusedActivity => item !== null);
       return { success: true, data: transformedData };
